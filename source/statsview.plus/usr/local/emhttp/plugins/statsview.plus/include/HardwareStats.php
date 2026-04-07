@@ -44,6 +44,31 @@ function statsview_plus_format_bytes($bytes, $unit) {
   return my_scale($bytes, $unit, null, -1).' '.$unit;
 }
 
+function statsview_plus_read_installed_version() {
+  static $cached_version = null;
+  if (is_string($cached_version) && $cached_version!=='') {
+    return $cached_version;
+  }
+
+  $plugin = 'statsview.plus';
+  $version_file = "/boot/config/plugins/$plugin/version";
+  $manifest_file = "/boot/config/plugins/$plugin/$plugin.plg";
+
+  $version = trim((string)@file_get_contents($version_file));
+  if ($version==='' && is_file($manifest_file)) {
+    $manifest = (string)@file_get_contents($manifest_file);
+    if (preg_match('/<!ENTITY\s+version\s+"([^"]+)"/', $manifest, $matches)) {
+      $version = trim((string)$matches[1]);
+    }
+  }
+  if ($version==='') {
+    $version = '0';
+  }
+
+  $cached_version = $version;
+  return $cached_version;
+}
+
 function statsview_plus_disk_dashboard_payload($start_mode, $pools_csv) {
   $normal_mode = $start_mode=='Normal';
   $pools = array_values(array_filter(array_map('trim', explode(',', $pools_csv))));
@@ -166,6 +191,7 @@ function statsview_plus_disk_dashboard_payload($start_mode, $pools_csv) {
 
   return [
     'generatedAt' => time(),
+    'pluginVersion' => statsview_plus_read_installed_version(),
     'mode' => $normal_mode ? 'normal' : 'maintenance',
     'modeLabel' => $normal_mode ? _('Normal') : _('Maintenance'),
     'summary' => [
@@ -195,6 +221,9 @@ function statsview_plus_disk_dashboard_payload($start_mode, $pools_csv) {
 switch ($_POST['cmd']??'') {
 case 'disk_dashboard':
   header('Content-Type: application/json; charset=utf-8');
+  header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+  header('Pragma: no-cache');
+  header('Expires: 0');
   echo json_encode(
     statsview_plus_disk_dashboard_payload($_POST['startMode']??'', $_POST['pools']??''),
     JSON_UNESCAPED_SLASHES

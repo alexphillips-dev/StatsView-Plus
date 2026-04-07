@@ -22,9 +22,42 @@ endif;
 $plugin = 'statsview.plus';
 $cfg = parse_plugin_cfg($plugin);
 $pools = $pools ?? ['cache'];
+
+if (!function_exists('statsview_plus_page_installed_version')) {
+  function statsview_plus_page_installed_version($plugin_name) {
+    $version_file = "/boot/config/plugins/$plugin_name/version";
+    $manifest_file = "/boot/config/plugins/$plugin_name/$plugin_name.plg";
+    $version = trim((string)@file_get_contents($version_file));
+    if ($version==='' && is_file($manifest_file)) {
+      $manifest = (string)@file_get_contents($manifest_file);
+      if (preg_match('/<!ENTITY\s+version\s+"([^"]+)"/', $manifest, $matches)) {
+        $version = trim((string)$matches[1]);
+      }
+    }
+    return $version==='' ? '0' : $version;
+  }
+}
+
+if (!function_exists('statsview_plus_versioned_asset_path')) {
+  function statsview_plus_versioned_asset_path($plugin_name, $relative_path, $version) {
+    $path = "/plugins/$plugin_name/" . ltrim($relative_path, '/');
+    $separator = strpos($path, '?')===false ? '?' : '&';
+    return htmlspecialchars($path . $separator . 'v=' . rawurlencode($version), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  }
+}
+
+$page_version = statsview_plus_page_installed_version($plugin);
+
+if (!headers_sent()) {
+  header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+  header('Pragma: no-cache');
+  header('Expires: 0');
+}
+
 $dashboard_config = [
   'endpoint' => "/plugins/$plugin/include/HardwareStats.php",
   'pollMs' => 30000,
+  'assetVersion' => $page_version,
   'startMode' => $var['startMode']??'',
   'pools' => implode(',', $pools),
   'showSize' => !empty($cfg['size']),
@@ -66,7 +99,10 @@ $dashboard_config = [
   ]
 ];
 ?>
-<link rel="stylesheet" href="<?=autov("/plugins/$plugin/sheets/SystemDisks.css")?>">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemDisks.css", $page_version)?>">
 
 <div id="svplus-disk-dashboard" class="svplus-disk-dashboard is-loading">
   <div class="svplus-dashboard-shell">
@@ -148,7 +184,34 @@ $dashboard_config = [
 <script>
 window.statsViewDiskDashboardConfig = <?=json_encode($dashboard_config, JSON_UNESCAPED_SLASHES)?>;
 </script>
-<script src="<?=autov("/plugins/$plugin/javascript/system-disks-dashboard.js")?>"></script>
+<script>
+(function(){
+  try {
+    var win = window;
+    if (!win || !win.sessionStorage) return;
+    var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+    var pageKey = 'statsview-plus-disk-stats';
+    var path = String((win.location && win.location.pathname) || pageKey);
+    var storageKey = 'statsview.page-version:' + pageKey + ':' + path;
+    var reloadKey = storageKey + ':reloaded';
+    var previousVersion = String(win.sessionStorage.getItem(storageKey) || '').trim();
+    var lastReloadedVersion = String(win.sessionStorage.getItem(reloadKey) || '').trim();
+    win.sessionStorage.setItem(storageKey, currentVersion);
+    if (previousVersion && previousVersion !== currentVersion && lastReloadedVersion !== currentVersion) {
+      win.sessionStorage.setItem(reloadKey, currentVersion);
+      var url = new URL(win.location.href);
+      url.searchParams.set('svplusv', currentVersion);
+      url.searchParams.set('svplusr', String(Date.now()));
+      win.location.replace(url.toString());
+      return;
+    }
+    if (previousVersion === currentVersion && lastReloadedVersion === currentVersion) {
+      win.sessionStorage.removeItem(reloadKey);
+    }
+  } catch (_statsviewVersionError) {}
+})();
+</script>
+<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/system-disks-dashboard.js", $page_version)?>"></script>
 
 <?if (!empty($cfg['stats']) && substr($cfg['stats'],0,5)!='Tasks'):?>
 <p><input type="button" value="_(Done)_" onclick="done()"></p>

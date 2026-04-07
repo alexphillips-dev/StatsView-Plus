@@ -23,6 +23,24 @@
     return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   }
 
+  function forceVersionRefresh(nextVersion) {
+    try {
+      var win = window;
+      var current = String(win.statsViewDiskDashboardConfig && win.statsViewDiskDashboardConfig.assetVersion || '').trim();
+      var target = String(nextVersion || '').trim();
+      if (!target || !current || target === current) {
+        return false;
+      }
+      var url = new URL(win.location.href);
+      url.searchParams.set('svplusv', target);
+      url.searchParams.set('svplusr', String(Date.now()));
+      win.location.replace(url.toString());
+      return true;
+    } catch (_error) {
+      return false;
+    }
+  }
+
   function buildThresholdMarkers(row) {
     var markers = [];
     if (row.warningThreshold > 0) {
@@ -216,6 +234,9 @@
   };
 
   DiskDashboard.prototype.render = function(payload) {
+    if (forceVersionRefresh(payload.pluginVersion)) {
+      return;
+    }
     var rows = payload.rows || [];
     var summary = payload.summary || {};
     var watchlistRows = rows.filter(function(row) {
