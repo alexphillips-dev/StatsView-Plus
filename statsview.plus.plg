@@ -2,17 +2,22 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.06">
+<!ENTITY version   "2026.04.07.07">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "a73c4dddeb5db2441f7ef39997b72d03">
+<!ENTITY MD5 "1274c1d29f566f2a8df6c2067e00b917">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.07
+- UI: Replace the legacy System Stats screen with a new commander-style dashboard that matches the Disk Stats command view
+- UI: Add compact control panels, live summary cards, realtime telemetry panels, session peaks, and command-center sidebars for CPU, memory, network, and storage
+- Backend: Add a dedicated `system_dashboard` payload and version-aware page assets so the new System Stats screen owns its own render path and update behavior
 
 ###2026.04.07.06
 - UI: Compress the Disk Stats command view again with tighter spacing, smaller cards, slimmer meters, and denser fleet/watchlist rows

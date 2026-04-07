@@ -69,6 +69,104 @@ function statsview_plus_read_installed_version() {
   return $cached_version;
 }
 
+function statsview_plus_system_enabled_modules($show_csv) {
+  $modules = array_values(array_filter(array_map('trim', explode(',', (string)$show_csv))));
+  if (empty($modules)) {
+    $modules = ['cpu', 'ram', 'com', 'hdd'];
+  }
+  return array_values(array_intersect(['cpu', 'ram', 'com', 'hdd'], array_unique($modules)));
+}
+
+function statsview_plus_convert_network_rate($value, $unit) {
+  $bytes_per_second = max(0, (float)$value) * 1024;
+  return $unit=='b' ? $bytes_per_second * 8 : $bytes_per_second;
+}
+
+function statsview_plus_system_snapshot($port, $unit) {
+  $nl = '"\n"';
+  $cpu = '$2=="all"';
+  $hdd = '$2=="tps"';
+  $ram = '$2=="kbmemfree"';
+  $safe_port = preg_replace('/[^A-Za-z0-9._:-]/', '', (string)$port);
+  $com = '$2=="'.$safe_port.'"';
+  $data = [];
+
+  exec(
+    "sar 1 1 -u -b -r -n DEV|grep -a '^A'|tr -d '\\0'|awk '$cpu {u=$3;n=$4;s=$5;}; $hdd {getline;r=$6;w=$7;}; $ram {getline;f=$2;c=$6+$7;d=$4;}; $com {x=$5;y=$6;} END{print u,n,s{$nl}r,w{$nl}f,c,d{$nl}x,y}'",
+    $data
+  );
+
+  $cpu_values = preg_split('/\s+/', trim((string)($data[0] ?? '')));
+  $storage_values = preg_split('/\s+/', trim((string)($data[1] ?? '')));
+  $memory_values = preg_split('/\s+/', trim((string)($data[2] ?? '')));
+  $network_values = preg_split('/\s+/', trim((string)($data[3] ?? '')));
+
+  $cpu_user = max(0, (float)($cpu_values[0] ?? 0));
+  $cpu_nice = max(0, (float)($cpu_values[1] ?? 0));
+  $cpu_system = max(0, (float)($cpu_values[2] ?? 0));
+  $cpu_total = min(100, round($cpu_user + $cpu_nice + $cpu_system, 1));
+
+  $memory_free = max(0, (float)($memory_values[0] ?? 0)) * 1024;
+  $memory_cached = max(0, (float)($memory_values[1] ?? 0)) * 1024;
+  $memory_used = max(0, (float)($memory_values[2] ?? 0)) * 1024;
+  $memory_total = $memory_free + $memory_cached + $memory_used;
+  $memory_percent = $memory_total > 0 ? round(100 * $memory_used / $memory_total, 1) : 0;
+
+  $network_receive = statsview_plus_convert_network_rate($network_values[0] ?? 0, $unit);
+  $network_transmit = statsview_plus_convert_network_rate($network_values[1] ?? 0, $unit);
+  $storage_read = max(0, (float)($storage_values[0] ?? 0));
+  $storage_write = max(0, (float)($storage_values[1] ?? 0));
+
+  return [
+    'cpu' => [
+      'user' => round($cpu_user, 1),
+      'nice' => round($cpu_nice, 1),
+      'system' => round($cpu_system, 1),
+      'total' => $cpu_total
+    ],
+    'ram' => [
+      'freeBytes' => $memory_free,
+      'cachedBytes' => $memory_cached,
+      'usedBytes' => $memory_used,
+      'totalBytes' => $memory_total,
+      'usedPercent' => $memory_percent
+    ],
+    'com' => [
+      'receiveRate' => round($network_receive, 2),
+      'transmitRate' => round($network_transmit, 2),
+      'totalRate' => round($network_receive + $network_transmit, 2),
+      'unit' => $unit=='b' ? 'bits/s' : 'B/s'
+    ],
+    'hdd' => [
+      'readRate' => round($storage_read, 2),
+      'writeRate' => round($storage_write, 2),
+      'totalRate' => round($storage_read + $storage_write, 2),
+      'unit' => '/s'
+    ]
+  ];
+}
+
+function statsview_plus_system_dashboard_payload($graph, $frame, $port, $unit, $show_csv, $cpu_scale) {
+  $graph = (string)$graph;
+  $frame_count = max(15, (int)$frame);
+  $unit = $unit=='B' ? 'B' : 'b';
+  $modules = statsview_plus_system_enabled_modules($show_csv);
+  $cpu_scale = (string)$cpu_scale === '100' ? 100 : 0;
+
+  return [
+    'generatedAt' => time(),
+    'pluginVersion' => statsview_plus_read_installed_version(),
+    'graph' => $graph,
+    'frame' => $frame_count,
+    'windowSeconds' => $frame_count * 2,
+    'port' => (string)$port,
+    'unit' => $unit,
+    'cpuScale' => $cpu_scale,
+    'modules' => $modules,
+    'snapshot' => statsview_plus_system_snapshot($port, $unit)
+  ];
+}
+
 function statsview_plus_disk_dashboard_payload($start_mode, $pools_csv) {
   $normal_mode = $start_mode=='Normal';
   $pools = array_values(array_filter(array_map('trim', explode(',', $pools_csv))));
@@ -219,6 +317,23 @@ function statsview_plus_disk_dashboard_payload($start_mode, $pools_csv) {
 }
 
 switch ($_POST['cmd']??'') {
+case 'system_dashboard':
+  header('Content-Type: application/json; charset=utf-8');
+  header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+  header('Pragma: no-cache');
+  header('Expires: 0');
+  echo json_encode(
+    statsview_plus_system_dashboard_payload(
+      $_POST['graph'] ?? '0',
+      $_POST['frame'] ?? '150',
+      $_POST['port'] ?? 'eth0',
+      $_POST['unit'] ?? 'b',
+      $_POST['show'] ?? '',
+      $_POST['cpuScale'] ?? '0'
+    ),
+    JSON_UNESCAPED_SLASHES
+  );
+  exit;
 case 'disk_dashboard':
   header('Content-Type: application/json; charset=utf-8');
   header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');

@@ -1,0 +1,481 @@
+.svplus-system-dashboard {
+  --sv-bg: linear-gradient(180deg, #0b1220 0%, #111c2f 100%);
+  --sv-panel: rgba(13, 24, 42, 0.82);
+  --sv-panel-strong: rgba(15, 28, 47, 0.94);
+  --sv-panel-soft: rgba(255, 255, 255, 0.05);
+  --sv-border: rgba(148, 163, 184, 0.18);
+  --sv-text: #e7eef8;
+  --sv-text-muted: #91a4bf;
+  --sv-text-soft: #b8c6da;
+  --sv-accent: #4dd3ff;
+  --sv-good: #37d39a;
+  --sv-warn: #ffb84d;
+  --sv-bad: #ff6b6b;
+  --sv-shadow: 0 24px 60px rgba(4, 11, 21, 0.35);
+  color: var(--sv-text);
+  margin-top: 8px;
+}
+
+.svplus-system-shell {
+  background: var(--sv-bg);
+  border: 1px solid var(--sv-border);
+  border-radius: 15px;
+  box-shadow: var(--sv-shadow);
+  overflow: hidden;
+}
+
+.svplus-system-head {
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 14px 14px 11px;
+}
+
+.svplus-system-head-copy {
+  max-width: 700px;
+}
+
+.svplus-system-eyebrow,
+.svplus-system-panel-eyebrow {
+  color: var(--sv-accent);
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.svplus-system-headline,
+.svplus-system-panel-title,
+.svplus-system-chart-title {
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.svplus-system-headline {
+  font-size: 24px;
+  line-height: 1;
+  margin: 0;
+}
+
+.svplus-system-subheadline,
+.svplus-system-refresh-meta,
+.svplus-system-summary-meta,
+.svplus-system-detail-label,
+.svplus-system-stack-copy span,
+.svplus-system-empty {
+  color: var(--sv-text-muted);
+}
+
+.svplus-system-subheadline {
+  font-size: 11px;
+  line-height: 1.35;
+  margin: 6px 0 0;
+}
+
+.svplus-system-head-actions {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.svplus-system-refresh,
+.svplus-system-secondary {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 7px 11px;
+  text-transform: uppercase;
+}
+
+.svplus-system-refresh {
+  background: linear-gradient(135deg, #18baff 0%, #0e8dff 100%);
+  color: #06121f;
+}
+
+.svplus-system-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sv-text);
+}
+
+.svplus-system-refresh:disabled,
+.svplus-system-secondary:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.svplus-system-refresh-meta {
+  font-size: 10px;
+  margin: 0;
+  text-align: right;
+}
+
+.svplus-system-refresh-label {
+  display: block;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.svplus-system-refresh-value {
+  color: var(--sv-text-soft);
+  font-weight: 600;
+}
+
+.svplus-system-banner {
+  margin: 0 14px 12px;
+  padding: 10px 12px;
+}
+
+.svplus-system-banner-error {
+  background: rgba(255, 107, 107, 0.16);
+  border: 1px solid rgba(255, 107, 107, 0.25);
+  border-radius: 14px;
+  color: #ffd9d9;
+}
+
+.svplus-system-panel,
+.svplus-system-summary-card,
+.svplus-system-chart-card {
+  background: var(--sv-panel);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 13px;
+}
+
+.svplus-system-controls,
+.svplus-system-summary,
+.svplus-system-main {
+  margin: 0 14px 10px;
+}
+
+.svplus-system-controls {
+  padding: 11px;
+}
+
+.svplus-system-controls-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.svplus-system-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.svplus-system-control span {
+  color: var(--sv-text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.svplus-system-control select {
+  background: var(--sv-panel-strong);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  color: var(--sv-text);
+  font-size: 12px;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.svplus-system-control-button {
+  justify-content: flex-end;
+}
+
+.svplus-system-summary {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.svplus-system-summary-card {
+  min-height: 72px;
+  padding: 10px;
+}
+
+.svplus-system-summary-card.tone-warning {
+  background: rgba(255, 184, 77, 0.12);
+}
+
+.svplus-system-summary-card.tone-critical {
+  background: rgba(255, 107, 107, 0.14);
+}
+
+.svplus-system-summary-card.tone-neutral {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.svplus-system-summary-label {
+  color: var(--sv-text-muted);
+  display: block;
+  font-size: 9px;
+  margin-bottom: 9px;
+  text-transform: uppercase;
+}
+
+.svplus-system-summary-value {
+  display: block;
+  font-size: 18px;
+  line-height: 1.05;
+}
+
+.svplus-system-summary-meta {
+  display: block;
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.svplus-system-main {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 2fr) minmax(250px, 0.78fr);
+  padding-bottom: 14px;
+}
+
+.svplus-system-grid-panel,
+.svplus-system-sidebar > .svplus-system-panel {
+  margin: 0;
+  padding: 11px;
+}
+
+.svplus-system-sidebar {
+  display: grid;
+  gap: 10px;
+}
+
+.svplus-system-panel-head,
+.svplus-system-stack-item,
+.svplus-system-detail-line,
+.svplus-system-chart-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.svplus-system-panel-title {
+  font-size: 14px;
+  margin: 0;
+}
+
+.svplus-system-panels {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(var(--svplus-system-columns, 2), minmax(0, 1fr));
+}
+
+.svplus-system-chart-card {
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  padding: 10px;
+}
+
+.svplus-system-chart-head {
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.svplus-system-chart-title {
+  font-size: 15px;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.svplus-system-chart {
+  height: 220px;
+}
+
+.svplus-system-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.svplus-system-chip {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 7px;
+  text-transform: uppercase;
+}
+
+.svplus-system-chip.tone-normal {
+  background: rgba(55, 211, 154, 0.16);
+  color: #a4f3d5;
+}
+
+.svplus-system-chip.tone-warning {
+  background: rgba(255, 184, 77, 0.15);
+  color: #ffd79b;
+}
+
+.svplus-system-chip.tone-critical {
+  background: rgba(255, 107, 107, 0.14);
+  color: #ffb2b2;
+}
+
+.svplus-system-chip.tone-neutral {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sv-text-soft);
+}
+
+.svplus-system-stack,
+.svplus-system-detail-stack {
+  display: grid;
+  gap: 6px;
+}
+
+.svplus-system-stack-item,
+.svplus-system-detail-line {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 10px;
+  gap: 8px;
+  padding: 8px 9px;
+}
+
+.svplus-system-stack-item.tone-warning {
+  background: rgba(255, 184, 77, 0.09);
+}
+
+.svplus-system-stack-item.tone-critical {
+  background: rgba(255, 107, 107, 0.11);
+}
+
+.svplus-system-stack-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.svplus-system-stack-copy strong,
+.svplus-system-detail-value {
+  color: var(--sv-text);
+  font-size: 12px;
+}
+
+.svplus-system-stack-value {
+  color: var(--sv-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.svplus-system-detail-label {
+  font-size: 10px;
+}
+
+.svplus-system-empty {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 10px;
+}
+
+.svplus-system-loading {
+  animation: svplus-system-pulse 1.25s infinite ease-in-out;
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 100%);
+  background-size: 220% 100%;
+  border-radius: 10px;
+  min-height: 70px;
+}
+
+.svplus-system-dashboard .highcharts-container,
+.svplus-system-dashboard .highcharts-root {
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif !important;
+}
+
+.svplus-system-dashboard .highcharts-tooltip text,
+.svplus-system-dashboard .highcharts-axis text,
+.svplus-system-dashboard .highcharts-legend text {
+  fill: var(--sv-text-soft) !important;
+}
+
+.svplus-system-dashboard.is-loading .svplus-system-refresh {
+  opacity: 0.8;
+}
+
+@keyframes svplus-system-pulse {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (max-width: 1400px) {
+  .svplus-system-controls-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .svplus-system-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .svplus-system-main {
+    grid-template-columns: 1fr;
+  }
+
+  .svplus-system-sidebar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .svplus-system-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .svplus-system-panels,
+  .svplus-system-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .svplus-system-head {
+    flex-direction: column;
+  }
+
+  .svplus-system-head-actions {
+    align-items: flex-start;
+  }
+
+  .svplus-system-controls-grid,
+  .svplus-system-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .svplus-system-chart-head {
+    flex-direction: column;
+  }
+
+  .svplus-system-chip-group {
+    justify-content: flex-start;
+  }
+
+  .svplus-system-chart {
+    height: 200px;
+  }
+
+  .svplus-system-headline {
+    font-size: 21px;
+  }
+}

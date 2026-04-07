@@ -15,78 +15,313 @@ Cond="(exec(\"awk -F= '/^show=/{print $2}' /boot/config/plugins/statsview.plus/s
  */
 ?>
 <?
-if ($var['fsState']=="Stopped"):
+if (($var['fsState'] ?? '') == "Stopped"):
   echo "<div class='notice'>"._('Array must be **Started** to view system stats').".</div>";
   return;
 endif;
 
-$cols++;
-$tag  = $cols==1 ? 'graph2' : 'graph3';
-$cpu  = strpos($show,'cpu')!==false;
-$ram  = strpos($show,'ram')!==false;
-$com  = strpos($show,'com')!==false;
-$hdd  = strpos($show,'hdd')!==false;
-$cell = 1;
-$last = ' last';
-$tag1 = $tag.((!$ram && !$com && !$hdd) ? $last : '');
-if ($cpu) $cell++;
-$tag2 = $tag.(((!$com && !$hdd) || ($cols>1 ? $cell%$cols==0 : false)) ? $last : '');
-if ($ram) $cell++;
-$tag3 = $tag.((!$hdd || ($cols>1 ? $cell%$cols==0 : false)) ? $last : '');
-$tag4 = $tag.$last;
-
-function selector() {
-  global $graph, $frame;
-  echo "<span class='status'>";
-  echo "<span id='selector'><select onchange='modeller(this.value)'>";
-  echo mk_option($graph, '0', _('Real-time'));
-  echo mk_option($graph, '1', _('Last day'));
-  echo mk_option($graph, '2', _('Last 2 days'));
-  echo mk_option($graph, '3', _('Last 3 days'));
-  echo mk_option($graph, '7', _('Last week'));
-  echo mk_option($graph, '14', _('Last 2 weeks'));
-  echo mk_option($graph, '21', _('Last 3 weeks'));
-  echo mk_option($graph, '31', _('Last month'));
-  echo mk_option($graph, '3653', _('Since start'));
-  echo "</select></span>";
-  echo "<span id='monitor'><select onchange='resizer(this.value)'>";
-  echo mk_option($frame, '15', _('30 seconds'));
-  echo mk_option($frame, '30', _('1 minute'));
-  echo mk_option($frame, '60', _('2 minutes'));
-  echo mk_option($frame, '150', _('5 minutes'));
-  echo mk_option($frame, '300', _('10 minutes'));
-  echo mk_option($frame, '900', _('30 minutes'));
-  echo mk_option($frame, '1800', _('1 hour'));
-  echo mk_option($frame, '3600', _('2 hours'));
-  echo "</select><input type='button' value='"._('Reset')."' onclick='modeller(0)'></span>";
-  echo "</span>";
+$plugin = 'statsview.plus';
+$cfg = parse_plugin_cfg($plugin);
+$show = trim((string)($cfg['show'] ?? 'cpu,ram,com,hdd'));
+$modules = array_values(array_filter(array_map('trim', explode(',', $show))));
+if (empty($modules)) {
+  $modules = ['cpu', 'ram', 'com', 'hdd'];
 }
+
+$graph = (string)($cfg['graph'] ?? '0');
+$frame = (string)($cfg['frame'] ?? '150');
+$unit = (string)($cfg['unit'] ?? 'b');
+$port = trim((string)($cfg['port'] ?? 'eth0'));
+$cpu_scale = (string)($cfg['cpu'] ?? '0');
+$columns = max(1, min(4, ((int)($cfg['cols'] ?? 1)) + 1));
+
+$ports = [];
+exec("ifconfig -s|awk '/^(bond|eth)/{print $1}'", $ports);
+$ports = array_values(array_filter(array_map('trim', $ports)));
+if ($port !== '' && !in_array($port, $ports, true)) {
+  $ports[] = $port;
+}
+if (empty($ports)) {
+  $ports = [$port !== '' ? $port : 'eth0'];
+}
+
+if (!function_exists('statsview_plus_page_installed_version')) {
+  function statsview_plus_page_installed_version($plugin_name) {
+    $version_file = "/boot/config/plugins/$plugin_name/version";
+    $manifest_file = "/boot/config/plugins/$plugin_name/$plugin_name.plg";
+    $version = trim((string)@file_get_contents($version_file));
+    if ($version === '' && is_file($manifest_file)) {
+      $manifest = (string)@file_get_contents($manifest_file);
+      if (preg_match('/<!ENTITY\s+version\s+"([^"]+)"/', $manifest, $matches)) {
+        $version = trim((string)$matches[1]);
+      }
+    }
+    return $version === '' ? '0' : $version;
+  }
+}
+
+if (!function_exists('statsview_plus_versioned_asset_path')) {
+  function statsview_plus_versioned_asset_path($plugin_name, $relative_path, $version) {
+    $path = "/plugins/$plugin_name/" . ltrim($relative_path, '/');
+    $separator = strpos($path, '?') === false ? '?' : '&';
+    return htmlspecialchars($path . $separator . 'v=' . rawurlencode($version), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+  }
+}
+
+$page_version = statsview_plus_page_installed_version($plugin);
+
+if (!headers_sent()) {
+  header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+  header('Pragma: no-cache');
+  header('Expires: 0');
+}
+
+$graph_options = [
+  ['value' => '0', 'label' => _('Real-time')],
+  ['value' => '1', 'label' => _('Last day')],
+  ['value' => '2', 'label' => _('Last 2 days')],
+  ['value' => '3', 'label' => _('Last 3 days')],
+  ['value' => '7', 'label' => _('Last week')],
+  ['value' => '14', 'label' => _('Last 2 weeks')],
+  ['value' => '21', 'label' => _('Last 3 weeks')],
+  ['value' => '31', 'label' => _('Last month')],
+  ['value' => '3653', 'label' => _('Since start')]
+];
+
+$frame_options = [
+  ['value' => '15', 'label' => _('30 seconds')],
+  ['value' => '30', 'label' => _('1 minute')],
+  ['value' => '60', 'label' => _('2 minutes')],
+  ['value' => '150', 'label' => _('5 minutes')],
+  ['value' => '300', 'label' => _('10 minutes')],
+  ['value' => '900', 'label' => _('30 minutes')],
+  ['value' => '1800', 'label' => _('1 hour')],
+  ['value' => '3600', 'label' => _('2 hours')]
+];
+
+$dashboard_config = [
+  'endpoint' => "/plugins/$plugin/include/HardwareStats.php",
+  'pollMs' => 2000,
+  'assetVersion' => $page_version,
+  'initialGraph' => $graph,
+  'initialFrame' => $frame,
+  'initialPort' => $port !== '' ? $port : ($ports[0] ?? 'eth0'),
+  'initialUnit' => $unit === 'B' ? 'B' : 'b',
+  'cpuScale' => $cpu_scale === '100' ? 100 : 0,
+  'columns' => $columns,
+  'modules' => $modules,
+  'ports' => $ports,
+  'graphOptions' => $graph_options,
+  'frameOptions' => $frame_options,
+  'labels' => [
+    'title' => _('System Command View'),
+    'subtitle' => _('Live telemetry, rolling charts, and historical trends across CPU, memory, network, and storage'),
+    'refresh' => _('Refresh'),
+    'reset' => _('Reset'),
+    'timeframe' => _('Timeframe'),
+    'window' => _('Window'),
+    'interface' => _('Interface'),
+    'networkUnit' => _('Network Unit'),
+    'lastRefresh' => _('Last refresh'),
+    'refreshing' => _('Refreshing telemetry...'),
+    'refreshFailed' => _('Unable to refresh system telemetry right now.'),
+    'cpu' => _('Processor'),
+    'ram' => _('Memory'),
+    'com' => _('Network'),
+    'hdd' => _('Storage'),
+    'currentLoad' => _('Current load'),
+    'memoryUsed' => _('Memory used'),
+    'networkRate' => _('Network rate'),
+    'storageRate' => _('Storage rate'),
+    'livePanels' => _('Telemetry Grid'),
+    'livePanelsSubtitle' => _('Command-center charts for the enabled system modules'),
+    'signalBoard' => _('Signal Board'),
+    'signalBoardSubtitle' => _('Current module status at a glance'),
+    'sessionPeaks' => _('Session Peaks'),
+    'sessionPeaksSubtitle' => _('Highest values seen in this browser session'),
+    'context' => _('Mode & Source'),
+    'contextSubtitle' => _('Current controls, scaling, and telemetry source'),
+    'realtime' => _('Real-time'),
+    'historical' => _('Historical'),
+    'cpuScaleAuto' => _('Automatic'),
+    'cpuScaleFixed' => _('Fixed 100%'),
+    'used' => _('Used'),
+    'free' => _('Free'),
+    'cached' => _('Cached'),
+    'receive' => _('Receive'),
+    'transmit' => _('Transmit'),
+    'read' => _('Read'),
+    'write' => _('Write'),
+    'total' => _('Total'),
+    'emptyState' => _('No system modules are enabled in settings.'),
+    'cpuTotal' => _('CPU total'),
+    'memoryPercent' => _('Used percent'),
+    'moduleCount' => _('Modules'),
+    'windowSeconds' => _('Window'),
+    'currentView' => _('Current view'),
+    'cpuScaling' => _('CPU scaling'),
+    'enabledModules' => _('Enabled modules'),
+    'liveFeed' => _('Live feed'),
+    'updated' => _('Updated'),
+    'perSecond' => _('/s')
+  ]
+];
 ?>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemStats.css", $page_version)?>">
+
+<div id="svplus-system-dashboard" class="svplus-system-dashboard is-loading" style="--svplus-system-columns: <?=$columns?>;">
+  <div class="svplus-system-shell">
+    <header class="svplus-system-head">
+      <div class="svplus-system-head-copy">
+        <p class="svplus-system-eyebrow"><?=_('System Command View')?></p>
+        <h2 class="svplus-system-headline"><?=_('System Stats')?></h2>
+        <p class="svplus-system-subheadline"><?=_('Live telemetry, rolling charts, and historical trends across CPU, memory, network, and storage')?></p>
+      </div>
+      <div class="svplus-system-head-actions">
+        <button type="button" id="svplus-system-refresh" class="svplus-system-refresh"><?=_('Refresh')?></button>
+        <p class="svplus-system-refresh-meta">
+          <span class="svplus-system-refresh-label"><?=_('Last refresh')?></span>
+          <span id="svplus-system-last-refresh" class="svplus-system-refresh-value"><?=_('Refreshing telemetry...')?></span>
+        </p>
+      </div>
+    </header>
+
+    <div id="svplus-system-error" class="svplus-system-banner svplus-system-banner-error" hidden></div>
+
+    <section class="svplus-system-panel svplus-system-controls">
+      <div class="svplus-system-controls-grid">
+        <label class="svplus-system-control">
+          <span><?=_('Timeframe')?></span>
+          <select id="svplus-system-graph">
+            <?foreach ($graph_options as $option):?>
+            <option value="<?=$option['value']?>"<?=$graph === $option['value'] ? ' selected' : ''?>><?=$option['label']?></option>
+            <?endforeach;?>
+          </select>
+        </label>
+
+        <label class="svplus-system-control">
+          <span><?=_('Window')?></span>
+          <select id="svplus-system-frame">
+            <?foreach ($frame_options as $option):?>
+            <option value="<?=$option['value']?>"<?=$frame === $option['value'] ? ' selected' : ''?>><?=$option['label']?></option>
+            <?endforeach;?>
+          </select>
+        </label>
+
+        <label class="svplus-system-control">
+          <span><?=_('Interface')?></span>
+          <select id="svplus-system-port">
+            <?foreach ($ports as $option):?>
+            <option value="<?=$option?>"<?=$port === $option ? ' selected' : ''?>><?=$option?></option>
+            <?endforeach;?>
+          </select>
+        </label>
+
+        <label class="svplus-system-control">
+          <span><?=_('Network Unit')?></span>
+          <select id="svplus-system-unit">
+            <option value="b"<?=$unit !== 'B' ? ' selected' : ''?>><?=_('Bits per second')?></option>
+            <option value="B"<?=$unit === 'B' ? ' selected' : ''?>><?=_('Bytes per second')?></option>
+          </select>
+        </label>
+
+        <div class="svplus-system-control svplus-system-control-button">
+          <span>&nbsp;</span>
+          <button type="button" id="svplus-system-reset" class="svplus-system-secondary"><?=_('Reset')?></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="svplus-system-summary" class="svplus-system-summary">
+      <div class="svplus-system-summary-card"><div class="svplus-system-loading"></div></div>
+      <div class="svplus-system-summary-card"><div class="svplus-system-loading"></div></div>
+      <div class="svplus-system-summary-card"><div class="svplus-system-loading"></div></div>
+      <div class="svplus-system-summary-card"><div class="svplus-system-loading"></div></div>
+    </section>
+
+    <div class="svplus-system-main">
+      <section class="svplus-system-panel svplus-system-grid-panel">
+        <div class="svplus-system-panel-head">
+          <div>
+            <p class="svplus-system-panel-eyebrow"><?=_('Telemetry Grid')?></p>
+            <h3 class="svplus-system-panel-title"><?=_('Command-center charts for the enabled system modules')?></h3>
+          </div>
+        </div>
+        <div id="svplus-system-empty" class="svplus-system-empty" hidden><?=_('No system modules are enabled in settings.')?></div>
+        <div id="svplus-system-panels" class="svplus-system-panels"></div>
+      </section>
+
+      <aside class="svplus-system-sidebar">
+        <section class="svplus-system-panel">
+          <div class="svplus-system-panel-head">
+            <div>
+              <p class="svplus-system-panel-eyebrow"><?=_('Signal Board')?></p>
+              <h3 class="svplus-system-panel-title"><?=_('Current module status at a glance')?></h3>
+            </div>
+          </div>
+          <div id="svplus-system-signal-board" class="svplus-system-stack"></div>
+        </section>
+
+        <section class="svplus-system-panel">
+          <div class="svplus-system-panel-head">
+            <div>
+              <p class="svplus-system-panel-eyebrow"><?=_('Session Peaks')?></p>
+              <h3 class="svplus-system-panel-title"><?=_('Highest values seen in this browser session')?></h3>
+            </div>
+          </div>
+          <div id="svplus-system-peaks" class="svplus-system-stack"></div>
+        </section>
+
+        <section class="svplus-system-panel">
+          <div class="svplus-system-panel-head">
+            <div>
+              <p class="svplus-system-panel-eyebrow"><?=_('Mode & Source')?></p>
+              <h3 class="svplus-system-panel-title"><?=_('Current controls, scaling, and telemetry source')?></h3>
+            </div>
+          </div>
+          <div id="svplus-system-context" class="svplus-system-detail-stack"></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+
 <script>
-$('.tabs').append("<?=selector()?>");
-<?if ($cfg['first']):?>
-$.cookie('one','tab2',{path:'/'});
-$(function(){
-  $('span.status').show();
-  systemStats();
-});
-<?else:?>
-$('span.status').hide();
-$.removeCookie('one',{path:'/'});
-<?endif;?>
+window.statsViewSystemDashboardConfig = <?=json_encode($dashboard_config, JSON_UNESCAPED_SLASHES)?>;
 </script>
-<?if ($cpu):?>
-<span id='cpu' class='<?=$tag1?>'></span>
-<?endif;?>
-<?if ($ram):?>
-<span id='ram' class='<?=$tag2?>'></span>
-<?endif;?>
-<?if ($com):?>
-<span id='com' class='<?=$tag3?>'></span>
-<?endif;?>
-<?if ($hdd):?>
-<span id='hdd' class='<?=$tag4?>'></span>
-<?endif;?>
+<script>
+(function(){
+  try {
+    var win = window;
+    if (!win || !win.sessionStorage) return;
+    var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+    var pageKey = 'statsview-plus-system-stats';
+    var path = String((win.location && win.location.pathname) || pageKey);
+    var storageKey = 'statsview.page-version:' + pageKey + ':' + path;
+    var reloadKey = storageKey + ':reloaded';
+    var previousVersion = String(win.sessionStorage.getItem(storageKey) || '').trim();
+    var lastReloadedVersion = String(win.sessionStorage.getItem(reloadKey) || '').trim();
+    win.sessionStorage.setItem(storageKey, currentVersion);
+    if (previousVersion && previousVersion !== currentVersion && lastReloadedVersion !== currentVersion) {
+      win.sessionStorage.setItem(reloadKey, currentVersion);
+      var url = new URL(win.location.href);
+      url.searchParams.set('svplusv', currentVersion);
+      url.searchParams.set('svplusr', String(Date.now()));
+      win.location.replace(url.toString());
+      return;
+    }
+    if (previousVersion === currentVersion && lastReloadedVersion === currentVersion) {
+      win.sessionStorage.removeItem(reloadKey);
+    }
+  } catch (_statsviewVersionError) {}
+})();
+</script>
+<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/jquery.highcharts.js", $page_version)?>"></script>
+<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/system-stats-dashboard.js", $page_version)?>"></script>
+
 <?if (!empty($cfg['stats']) && substr($cfg['stats'],0,5)!='Tasks'):?>
 <p><input type="button" value="_(Done)_" onclick="done()"></p>
 <?endif;?>
