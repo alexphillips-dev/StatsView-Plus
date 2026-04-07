@@ -1,5 +1,5 @@
 Menu="/boot/config/plugins/statsview.plus/statsview.plus.cfg stats=Tasks:90"
 Type="xmenu"
 Title="StatsView Plus"
-Code="f1fe"
+Icon="circle-chart.png"
 Tabs="true"

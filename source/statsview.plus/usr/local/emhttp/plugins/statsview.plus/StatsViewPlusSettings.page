@@ -1,7 +1,6 @@
 Menu="Utilities"
 Title="StatsView Plus Settings"
-Icon="area-chart"
-Tag="pie-chart"
+Icon="circle-chart.png"
 ---
 <?PHP
 /* StatsView Plus

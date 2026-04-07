@@ -163,7 +163,7 @@ normalize_manifest_packaging_blocks() {
     fi
 
     perl -0pi -e 's{# Remove old '\''source'\'' packages.*?\n</INLINE>}{# Remove old '\''source'\'' packages\nrm -f \$(ls /boot/config/plugins/&name;/&name;*.txz 2>/dev/null | grep -v '\''&version;'\'')\n</INLINE>}s' "${target_file}"
-    perl -0pi -e 's{removepkg &name;}{removepkg &name;-&version;-x86_64-1 || true}g' "${target_file}"
+    perl -0pi -e 's{^removepkg .*$}{removepkg &name;-&version;-x86_64-1 || true}mg' "${target_file}"
 }
 
 validate_manifest_branch_matrix() {

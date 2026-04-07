@@ -1,6 +1,6 @@
 Menu="Stats:1"
 Title="Disk Stats"
-Tag="bar-chart"
+Icon="circle-chart.png"
 ---
 <?PHP
 /* StatsView Plus

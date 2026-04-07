@@ -1,6 +1,6 @@
 Menu="Stats:2"
 Title="System Stats"
-Tag="area-chart"
+Icon="circle-chart.png"
 Cond="(exec(\"awk -F= '/^show=/{print $2}' /boot/config/plugins/statsview.plus/statsview.plus.cfg 2>/dev/null\")!='\"\"')"
 ---
 <?PHP
