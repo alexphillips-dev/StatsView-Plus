@@ -370,7 +370,7 @@
 
     if (this.state.graph === '0') {
       $.each(this.modules, function(_, key) {
-        self.charts[key] = self.createChart(key, self.emptySeriesFor(key));
+        self.charts[key] = self.createChart(key, self.seedRealtimeSeries(key));
       });
       if (this.lastSnapshot && this.lastSnapshot.snapshot) {
         this.updateRealtimeCharts(this.lastSnapshot.snapshot, (this.lastSnapshot.generatedAt || 0) * 1000);
@@ -434,6 +434,21 @@
     });
   };
 
+  Dashboard.prototype.seedRealtimeSeries = function(key) {
+    var now = new Date().getTime();
+    var older = now - (this.config.pollMs * 2);
+    var recent = now - this.config.pollMs;
+    return $.map(MODULE_DEFS[key].series, function(series) {
+      return {
+        name: series.name,
+        data: [
+          [older, 0],
+          [recent, 0]
+        ]
+      };
+    });
+  };
+
   Dashboard.prototype.transformHistory = function(key, payload) {
     var stateUnit = this.state.unit;
     return $.map(MODULE_DEFS[key].series, function(seriesDef) {
@@ -479,13 +494,8 @@
       }
       values = self.seriesValueFromSnapshot(key, snapshot);
       $.each(chart.series, function(index, series) {
-        var value = Number(values[index]) || 0;
         var shift = series.data.length >= maxPoints;
-        if (series.data.length === 0) {
-          // Seed a short baseline on the first realtime refresh so the trace is visible immediately.
-          series.addPoint([timestamp - self.config.pollMs, value], false, false, false);
-        }
-        series.addPoint([timestamp, value], false, shift, false);
+        series.addPoint([timestamp, Number(values[index]) || 0], false, shift);
       });
       chart.redraw();
     });
@@ -508,7 +518,6 @@
     var self = this;
     var def = MODULE_DEFS[key];
     var type = def.stacked ? 'area' : 'line';
-    var isRealtime = this.state.graph === '0';
     return new Highcharts.Chart({
       chart: {
         renderTo: 'svplus-system-chart-' + key,
@@ -569,16 +578,10 @@
         series: {
           animation: false,
           marker: {
-            enabled: isRealtime,
-            radius: isRealtime ? 2.5 : 2
+            enabled: false,
+            radius: 2
           },
-          lineWidth: 2,
-          shadow: false,
-          states: {
-            hover: {
-              lineWidthPlus: 0
-            }
-          }
+          lineWidth: 2
         },
         area: {
           stacking: def.stacked ? 'normal' : null,

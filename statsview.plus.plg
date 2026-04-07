@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.09">
+<!ENTITY version   "2026.04.07.10">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "1514e7686ca6b1dca3986b6aa2830369">
+<!ENTITY MD5 "e5ccf128259caf7522d544f279b2b3af">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.10
+- Fix: Restore the System Stats page after the realtime chart bootstrap regression introduced a blank render
+- UI: Seed realtime charts with a Highcharts-safe baseline so traces appear immediately without unsupported options
 
 ###2026.04.07.09
 - UI: Seed realtime System Stats charts with an initial baseline so traces render immediately instead of appearing empty on first load
