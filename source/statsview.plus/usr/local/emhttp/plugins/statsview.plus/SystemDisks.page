@@ -211,6 +211,29 @@ window.statsViewDiskDashboardConfig = <?=json_encode($dashboard_config, JSON_UNE
   } catch (_statsviewVersionError) {}
 })();
 </script>
+<script>
+(function(){
+  try {
+    var win = window;
+    var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+    var endpoint = <?=json_encode("/plugins/$plugin/include/HardwareStats.php", JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+    var request = new XMLHttpRequest();
+    request.open('POST', endpoint, false);
+    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    request.send('cmd=plugin_version');
+    if (request.status >= 200 && request.status < 300) {
+      var payload = JSON.parse(request.responseText || '{}');
+      var latestVersion = String(payload.pluginVersion || '').trim();
+      if (latestVersion && latestVersion !== currentVersion) {
+        var url = new URL(win.location.href);
+        url.searchParams.set('svplusv', latestVersion);
+        url.searchParams.set('svplusr', String(Date.now()));
+        win.location.replace(url.toString());
+      }
+    }
+  } catch (_statsviewVersionProbeError) {}
+})();
+</script>
 <script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/system-disks-dashboard.js", $page_version)?>"></script>
 
 <?if (!empty($cfg['stats']) && substr($cfg['stats'],0,5)!='Tasks'):?>

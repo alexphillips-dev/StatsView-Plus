@@ -437,6 +437,29 @@ window.statsViewSystemDashboardBoot = (function(win, doc) {
   } catch (_statsviewVersionError) {}
 })();
 </script>
+<script>
+(function(){
+  try {
+    var win = window;
+    var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+    var endpoint = <?=json_encode("/plugins/$plugin/include/HardwareStats.php", JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+    var request = new XMLHttpRequest();
+    request.open('POST', endpoint, false);
+    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    request.send('cmd=plugin_version');
+    if (request.status >= 200 && request.status < 300) {
+      var payload = JSON.parse(request.responseText || '{}');
+      var latestVersion = String(payload.pluginVersion || '').trim();
+      if (latestVersion && latestVersion !== currentVersion) {
+        var url = new URL(win.location.href);
+        url.searchParams.set('svplusv', latestVersion);
+        url.searchParams.set('svplusr', String(Date.now()));
+        win.location.replace(url.toString());
+      }
+    }
+  } catch (_statsviewVersionProbeError) {}
+})();
+</script>
 <script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/jquery.highcharts.js", $page_version)?>" onerror="window.statsViewSystemDashboardBoot && window.statsViewSystemDashboardBoot.fail('Failed to load the System Stats Highcharts library.', { message: this.src })"></script>
 <script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/system-stats-dashboard.js", $page_version)?>" onerror="window.statsViewSystemDashboardBoot && window.statsViewSystemDashboardBoot.fail('Failed to load the System Stats dashboard script.', { message: this.src })"></script>
 

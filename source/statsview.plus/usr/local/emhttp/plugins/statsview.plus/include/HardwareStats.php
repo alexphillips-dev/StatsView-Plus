@@ -317,6 +317,16 @@ function statsview_plus_disk_dashboard_payload($start_mode, $pools_csv) {
 }
 
 switch ($_POST['cmd']??'') {
+case 'plugin_version':
+  header('Content-Type: application/json; charset=utf-8');
+  header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+  header('Pragma: no-cache');
+  header('Expires: 0');
+  echo json_encode(
+    ['pluginVersion' => statsview_plus_read_installed_version()],
+    JSON_UNESCAPED_SLASHES
+  );
+  exit;
 case 'system_dashboard':
   header('Content-Type: application/json; charset=utf-8');
   header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
