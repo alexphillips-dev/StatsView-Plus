@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.13">
+<!ENTITY version   "2026.04.07.14">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "7335454289dc2f59a08e79fac4e2fce7">
+<!ENTITY MD5 "3056b487eb586061694b085b44447236">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.14
+- Fix: Seed realtime System Stats charts with an initial baseline so live traces render immediately instead of waiting for a second sample
+- Maintenance: Fail dev/main builds and release checks if a shipped `.page` file or manifest picks up CRLF line endings again
 
 ###2026.04.07.13
 - Fix: Ship the StatsView `.page` files with LF line endings so Unraid can parse the Stats xmenu and System Stats page correctly

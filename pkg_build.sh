@@ -57,6 +57,26 @@ ensure_repo_layout() {
     fi
 }
 
+assert_lf_only_file() {
+    local target_file="${1:-}"
+    if [ -z "${target_file}" ] || [ ! -f "${target_file}" ]; then
+        echo "ERROR: Missing text file for LF validation: ${target_file}" >&2
+        exit 1
+    fi
+    if LC_ALL=C grep -q $'\r' "${target_file}"; then
+        echo "ERROR: CRLF detected in ${target_file}. Unraid page files must use LF line endings." >&2
+        exit 1
+    fi
+}
+
+validate_unraid_text_files() {
+    local page_file=""
+    while IFS= read -r -d '' page_file; do
+        assert_lf_only_file "${page_file}"
+    done < <(find "${SOURCE_DIR}" -type f -name '*.page' -print0)
+    assert_lf_only_file "${PLG_FILE}"
+}
+
 detect_git_branch() {
     local detected=""
     if command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -229,6 +249,7 @@ done
 trap cleanup_tmpdir EXIT
 ensure_repo_layout
 require_commands tar sed date awk grep sort head tail mktemp md5sum perl cp mkdir rm
+validate_unraid_text_files
 
 if [ -n "${BRANCH_OVERRIDE}" ]; then
     BRANCH="${BRANCH_OVERRIDE}"

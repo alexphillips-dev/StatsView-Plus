@@ -396,7 +396,7 @@
 
     if (this.state.graph === '0') {
       $.each(this.modules, function(_, key) {
-        self.charts[key] = self.createChart(key, self.emptySeriesFor(key));
+        self.charts[key] = self.createChart(key, self.seedRealtimeSeries(key));
       });
       if (this.lastSnapshot && this.lastSnapshot.snapshot) {
         this.updateRealtimeCharts(this.lastSnapshot.snapshot, (this.lastSnapshot.generatedAt || 0) * 1000);
@@ -456,6 +456,21 @@
       return {
         name: series.name,
         data: []
+      };
+    });
+  };
+
+  Dashboard.prototype.seedRealtimeSeries = function(key) {
+    var now = new Date().getTime();
+    var older = now - (this.config.pollMs * 2);
+    var recent = now - this.config.pollMs;
+    return $.map(MODULE_DEFS[key].series, function(series) {
+      return {
+        name: series.name,
+        data: [
+          [older, 0],
+          [recent, 0]
+        ]
       };
     });
   };

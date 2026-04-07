@@ -81,4 +81,12 @@ if [[ "${ACTUAL_MD5}" != "${MD5_ENTITY}" ]]; then
     exit 1
 fi
 
+while IFS= read -r archive_entry; do
+    [[ -z "${archive_entry}" ]] && continue
+    if tar -xOf "${ARCHIVE_FILE}" "${archive_entry}" | LC_ALL=C grep -q $'\r'; then
+        echo "ERROR: Archive entry has CRLF line endings: ${archive_entry}" >&2
+        exit 1
+    fi
+done < <(tar -tf "${ARCHIVE_FILE}" | grep -E '\.page$')
+
 echo "release_guard: manifest, archive, and version metadata look correct."
