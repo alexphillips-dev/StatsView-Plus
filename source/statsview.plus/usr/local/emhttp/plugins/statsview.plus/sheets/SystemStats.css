@@ -140,6 +140,25 @@
   color: #ffd9d9;
 }
 
+.svplus-system-banner-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.svplus-system-banner-detail {
+  background: rgba(0, 0, 0, 0.14);
+  border-radius: 10px;
+  color: #ffeaea;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  margin: 0;
+  padding: 8px 10px;
+  white-space: pre-wrap;
+}
+
 .svplus-system-panel,
 .svplus-system-summary-card,
 .svplus-system-chart-card {

@@ -148,6 +148,22 @@
     ].join('');
   }
 
+  function reportFatal(message, error) {
+    if (window.statsViewSystemDashboardBoot && typeof window.statsViewSystemDashboardBoot.fail === 'function') {
+      window.statsViewSystemDashboardBoot.fail(message, error);
+      return;
+    }
+    if (window.console && typeof window.console.error === 'function') {
+      window.console.error('StatsView Plus System Stats failure:', message, error || '');
+    }
+  }
+
+  function reportBootSuccess() {
+    if (window.statsViewSystemDashboardBoot && typeof window.statsViewSystemDashboardBoot.succeed === 'function') {
+      window.statsViewSystemDashboardBoot.succeed();
+    }
+  }
+
   function Dashboard(config) {
     this.config = $.extend(true, {}, config || {});
     this.state = {
@@ -183,7 +199,16 @@
   }
 
   Dashboard.prototype.init = function() {
-    if (!this.$root.length || !Highcharts) {
+    if (!this.$root.length) {
+      reportFatal('System Stats root element was not found.');
+      return;
+    }
+    if (!$ || typeof $.ajax !== 'function' || typeof $.extend !== 'function') {
+      reportFatal('jQuery is unavailable for System Stats.');
+      return;
+    }
+    if (!Highcharts || typeof Highcharts.Chart !== 'function') {
+      reportFatal('Highcharts failed to load for System Stats.');
       return;
     }
 
@@ -192,6 +217,7 @@
     this.buildPanels();
     this.loadCharts();
     this.fetchSnapshot(false);
+    reportBootSuccess();
   };
 
   Dashboard.prototype.bindControls = function() {
@@ -700,24 +726,13 @@
 
   $(function() {
     if (!window.statsViewSystemDashboardConfig) {
+      reportFatal('System Stats configuration is missing from the page.');
       return;
     }
     try {
       new Dashboard(window.statsViewSystemDashboardConfig).init();
     } catch (error) {
-      var $root = $('#svplus-system-dashboard');
-      var $error = $('#svplus-system-error');
-      if ($root.length) {
-        $root.addClass('is-ready').removeClass('is-loading');
-      }
-      if ($error.length) {
-        $error
-          .text('System Stats failed to initialize. Please refresh the page.')
-          .prop('hidden', false);
-      }
-      if (window.console && typeof window.console.error === 'function') {
-        window.console.error('StatsView Plus System Stats init failed', error);
-      }
+      reportFatal('System Stats failed to initialize.', error);
     }
   });
 })(window, window.jQuery, window.Highcharts);

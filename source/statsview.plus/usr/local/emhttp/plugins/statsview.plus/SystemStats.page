@@ -293,6 +293,126 @@ $dashboard_config = [
 window.statsViewSystemDashboardConfig = <?=json_encode($dashboard_config, JSON_UNESCAPED_SLASHES)?>;
 </script>
 <script>
+window.statsViewSystemDashboardBoot = (function(win, doc) {
+  var timeoutId = null;
+
+  function getRoot() {
+    return doc.getElementById('svplus-system-dashboard');
+  }
+
+  function getBanner() {
+    return doc.getElementById('svplus-system-error');
+  }
+
+  function appendLine(parent, className, text) {
+    var node = doc.createElement(className === 'svplus-system-banner-detail' ? 'pre' : 'strong');
+    node.className = className;
+    node.textContent = text;
+    parent.appendChild(node);
+  }
+
+  function normalizeError(error) {
+    var parts = [];
+    if (!error) {
+      return parts;
+    }
+    if (typeof error === 'string') {
+      parts.push(error);
+      return parts;
+    }
+    if (error.name && error.message) {
+      parts.push(error.name + ': ' + error.message);
+    } else if (error.message) {
+      parts.push(String(error.message));
+    }
+    if (error.filename) {
+      parts.push('Source: ' + error.filename);
+    }
+    if (error.line || error.lineno) {
+      parts.push('Line: ' + String(error.line || error.lineno));
+    }
+    if (error.column || error.colno) {
+      parts.push('Column: ' + String(error.column || error.colno));
+    }
+    if (!parts.length) {
+      parts.push(String(error));
+    }
+    return parts;
+  }
+
+  function showFailure(message, error) {
+    var root = getRoot();
+    var banner = getBanner();
+    var details = normalizeError(error);
+
+    if (timeoutId) {
+      win.clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+
+    if (root) {
+      root.classList.add('is-ready');
+      root.classList.remove('is-loading');
+    }
+
+    if (!banner) {
+      return;
+    }
+
+    banner.hidden = false;
+    banner.textContent = '';
+    appendLine(banner, 'svplus-system-banner-title', message);
+    if (details.length) {
+      appendLine(banner, 'svplus-system-banner-detail', details.join('\n'));
+    }
+  }
+
+  var api = {
+    initialized: false,
+    fail: function(message, error) {
+      showFailure(message, error);
+      if (win.console && typeof win.console.error === 'function') {
+        win.console.error('StatsView Plus System Stats failure:', message, error || '');
+      }
+    },
+    succeed: function() {
+      api.initialized = true;
+      if (timeoutId) {
+        win.clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    }
+  };
+
+  win.addEventListener('error', function(event) {
+    var file = String(event && event.filename || '');
+    var message = String(event && event.message || '');
+    if (file.indexOf('system-stats-dashboard') !== -1 || file.indexOf('jquery.highcharts') !== -1 || message.indexOf('Highcharts') !== -1 || message.indexOf('jQuery') !== -1 || message.indexOf('$') !== -1) {
+      api.fail('System Stats failed while loading frontend assets.', event.error || {
+        message: message,
+        filename: file,
+        lineno: event && event.lineno,
+        colno: event && event.colno
+      });
+    }
+  });
+
+  win.addEventListener('unhandledrejection', function(event) {
+    api.fail('System Stats failed because a browser promise was rejected.', event && event.reason);
+  });
+
+  timeoutId = win.setTimeout(function() {
+    if (!api.initialized) {
+      api.fail('System Stats did not finish initializing.', {
+        message: 'The dashboard bootstrap did not report success. A script may have failed before rendering the page.'
+      });
+    }
+  }, 4000);
+
+  return api;
+})(window, document);
+</script>
+<script>
 (function(){
   try {
     var win = window;
@@ -319,8 +439,8 @@ window.statsViewSystemDashboardConfig = <?=json_encode($dashboard_config, JSON_U
   } catch (_statsviewVersionError) {}
 })();
 </script>
-<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/jquery.highcharts.js", $page_version)?>"></script>
-<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/system-stats-dashboard.js", $page_version)?>"></script>
+<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/jquery.highcharts.js", $page_version)?>" onerror="window.statsViewSystemDashboardBoot && window.statsViewSystemDashboardBoot.fail('Failed to load the System Stats Highcharts library.', { message: this.src })"></script>
+<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/system-stats-dashboard.js", $page_version)?>" onerror="window.statsViewSystemDashboardBoot && window.statsViewSystemDashboardBoot.fail('Failed to load the System Stats dashboard script.', { message: this.src })"></script>
 
 <?if (!empty($cfg['stats']) && substr($cfg['stats'],0,5)!='Tasks'):?>
 <p><input type="button" value="_(Done)_" onclick="done()"></p>
