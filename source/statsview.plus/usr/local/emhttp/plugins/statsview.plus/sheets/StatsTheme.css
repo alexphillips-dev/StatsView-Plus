@@ -1,0 +1,246 @@
+#svplus-system-dashboard,
+#svplus-disk-dashboard {
+  --svplus-theme-foreground: var(--text, #e7eef8);
+  --svplus-theme-text-primary: var(--svplus-theme-foreground);
+  --svplus-theme-text-muted: rgba(145, 164, 191, 0.96);
+  --svplus-theme-text-soft: rgba(184, 198, 218, 0.96);
+  --svplus-theme-accent: var(--orange, #4dd3ff);
+  --svplus-theme-status-good: #37d39a;
+  --svplus-theme-status-warning: #ffb84d;
+  --svplus-theme-status-danger: #ff6b6b;
+  --svplus-theme-status-maintenance: #8a94a7;
+  --svplus-theme-page-top: rgba(11, 18, 32, 0.98);
+  --svplus-theme-page-bottom: rgba(17, 28, 47, 0.985);
+  --svplus-theme-panel: rgba(13, 24, 42, 0.82);
+  --svplus-theme-panel-strong: rgba(15, 28, 47, 0.94);
+  --svplus-theme-panel-soft: rgba(255, 255, 255, 0.06);
+  --svplus-theme-surface-subtle: rgba(255, 255, 255, 0.05);
+  --svplus-theme-surface-neutral-soft: rgba(255, 255, 255, 0.08);
+  --svplus-theme-surface-warning-soft: rgba(255, 184, 77, 0.12);
+  --svplus-theme-surface-critical-soft: rgba(255, 107, 107, 0.14);
+  --svplus-theme-border: rgba(148, 163, 184, 0.18);
+  --svplus-theme-border-soft: rgba(148, 163, 184, 0.14);
+  --svplus-theme-border-strong: rgba(148, 163, 184, 0.18);
+  --svplus-theme-border-faint: rgba(148, 163, 184, 0.1);
+  --svplus-theme-border-hover: rgba(148, 163, 184, 0.3);
+  --svplus-theme-shadow: 0 24px 60px rgba(4, 11, 21, 0.35);
+  --svplus-theme-banner-error-bg: rgba(255, 107, 107, 0.16);
+  --svplus-theme-banner-error-border: rgba(255, 107, 107, 0.25);
+  --svplus-theme-banner-error-text: #ffd9d9;
+  --svplus-theme-banner-detail-bg: rgba(0, 0, 0, 0.14);
+  --svplus-theme-banner-detail-text: #ffeaea;
+  --svplus-theme-chip-normal-bg: rgba(55, 211, 154, 0.16);
+  --svplus-theme-chip-normal-text: #a4f3d5;
+  --svplus-theme-chip-warning-bg: rgba(255, 184, 77, 0.15);
+  --svplus-theme-chip-warning-text: #ffd79b;
+  --svplus-theme-chip-critical-bg: rgba(255, 107, 107, 0.14);
+  --svplus-theme-chip-critical-text: #ffb2b2;
+  --svplus-theme-chip-neutral-bg: rgba(255, 255, 255, 0.08);
+  --svplus-theme-chip-neutral-text: rgba(184, 198, 218, 0.96);
+  --svplus-theme-chip-maintenance-bg: rgba(138, 148, 167, 0.22);
+  --svplus-theme-chip-maintenance-text: #dbe5f7;
+  --svplus-theme-empty-surface: rgba(255, 255, 255, 0.04);
+  --svplus-theme-empty-border: rgba(148, 163, 184, 0.2);
+  --svplus-theme-loading-gradient: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 100%);
+  --svplus-theme-chart-grid: rgba(148, 163, 184, 0.12);
+  --svplus-theme-chart-axis-line: rgba(148, 163, 184, 0.25);
+  --svplus-theme-chart-axis-text: rgba(145, 164, 191, 0.96);
+  --svplus-theme-chart-tooltip-bg: rgba(11, 18, 32, 0.96);
+  --svplus-theme-chart-tooltip-border: rgba(148, 163, 184, 0.2);
+  --svplus-theme-chart-tooltip-text: var(--svplus-theme-text-primary);
+  --svplus-theme-series-blue: #4dd3ff;
+  --svplus-theme-series-cyan: #7ae4ff;
+  --svplus-theme-series-green: #37d39a;
+  --svplus-theme-series-amber: #ffb84d;
+  --svplus-theme-series-red: #ff6b6b;
+  --svplus-theme-series-blue-strong: #3b9be3;
+  --svplus-theme-series-cyan-strong: #58bed8;
+  --svplus-theme-series-green-strong: #2ca978;
+  --svplus-theme-series-amber-strong: #d59128;
+  --svplus-theme-series-red-strong: #d95c5c;
+  --svplus-theme-array-fill-normal: linear-gradient(90deg, #1ec6d9 0%, #37d39a 100%);
+  --svplus-theme-array-fill-warning: linear-gradient(90deg, #ffcf5a 0%, #ff9c42 100%);
+  --svplus-theme-array-fill-critical: linear-gradient(90deg, #ff8a7a 0%, #ff5d73 100%);
+  --svplus-theme-array-fill-maintenance: linear-gradient(90deg, #7f8ca3 0%, #98a7bd 100%);
+  --svplus-theme-threshold-line: rgba(255, 255, 255, 0.7);
+}
+
+html[data-svplus-host-theme="gray"] #svplus-system-dashboard,
+body[data-svplus-host-theme="gray"] #svplus-system-dashboard,
+#svplus-system-dashboard[data-svplus-host-theme="gray"],
+html[data-svplus-host-theme="gray"] #svplus-disk-dashboard,
+body[data-svplus-host-theme="gray"] #svplus-disk-dashboard,
+#svplus-disk-dashboard[data-svplus-host-theme="gray"],
+html[data-svplus-host-theme="grey"] #svplus-system-dashboard,
+body[data-svplus-host-theme="grey"] #svplus-system-dashboard,
+#svplus-system-dashboard[data-svplus-host-theme="grey"],
+html[data-svplus-host-theme="grey"] #svplus-disk-dashboard,
+body[data-svplus-host-theme="grey"] #svplus-disk-dashboard,
+#svplus-disk-dashboard[data-svplus-host-theme="grey"] {
+  --svplus-theme-accent: var(--orange, #ff9a4a);
+  --svplus-theme-page-top: rgba(37, 40, 45, 0.985);
+  --svplus-theme-page-bottom: rgba(45, 49, 55, 0.99);
+  --svplus-theme-panel: rgba(46, 49, 54, 0.98);
+  --svplus-theme-panel-strong: rgba(53, 57, 63, 0.94);
+  --svplus-theme-panel-soft: rgba(255, 255, 255, 0.065);
+  --svplus-theme-surface-subtle: rgba(255, 255, 255, 0.055);
+  --svplus-theme-surface-neutral-soft: rgba(255, 255, 255, 0.09);
+  --svplus-theme-surface-warning-soft: rgba(255, 154, 74, 0.12);
+  --svplus-theme-surface-critical-soft: rgba(255, 116, 84, 0.13);
+  --svplus-theme-border: rgba(255, 255, 255, 0.1);
+  --svplus-theme-border-soft: rgba(255, 255, 255, 0.08);
+  --svplus-theme-border-strong: rgba(255, 154, 74, 0.18);
+  --svplus-theme-border-faint: rgba(255, 255, 255, 0.12);
+  --svplus-theme-border-hover: rgba(255, 154, 74, 0.28);
+  --svplus-theme-banner-detail-bg: rgba(0, 0, 0, 0.12);
+  --svplus-theme-chip-warning-bg: rgba(255, 154, 74, 0.14);
+  --svplus-theme-chip-warning-text: #ffe3cf;
+  --svplus-theme-chip-neutral-bg: rgba(255, 255, 255, 0.1);
+  --svplus-theme-loading-gradient: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 100%);
+  --svplus-theme-chart-grid: rgba(191, 205, 221, 0.12);
+  --svplus-theme-chart-axis-line: rgba(191, 205, 221, 0.2);
+  --svplus-theme-chart-tooltip-border: rgba(255, 154, 74, 0.18);
+  --svplus-theme-array-fill-warning: linear-gradient(90deg, #ffc569 0%, #ff9a4a 100%);
+}
+
+html[data-svplus-host-theme="azure"] #svplus-system-dashboard,
+body[data-svplus-host-theme="azure"] #svplus-system-dashboard,
+#svplus-system-dashboard[data-svplus-host-theme="azure"],
+html[data-svplus-host-theme="azure"] #svplus-disk-dashboard,
+body[data-svplus-host-theme="azure"] #svplus-disk-dashboard,
+#svplus-disk-dashboard[data-svplus-host-theme="azure"] {
+  --svplus-theme-foreground: #f5fbff;
+  --svplus-theme-text-primary: #f5fbff;
+  --svplus-theme-text-muted: #c4d4e5;
+  --svplus-theme-text-soft: #d7e6f4;
+  --svplus-theme-accent: #0078d4;
+  --svplus-theme-page-top: rgba(19, 36, 55, 0.985);
+  --svplus-theme-page-bottom: rgba(27, 47, 70, 0.99);
+  --svplus-theme-panel: rgba(31, 48, 69, 0.98);
+  --svplus-theme-panel-strong: rgba(39, 58, 83, 0.95);
+  --svplus-theme-panel-soft: rgba(191, 227, 255, 0.08);
+  --svplus-theme-surface-subtle: rgba(191, 227, 255, 0.06);
+  --svplus-theme-surface-neutral-soft: rgba(191, 227, 255, 0.09);
+  --svplus-theme-surface-warning-soft: rgba(255, 190, 92, 0.12);
+  --svplus-theme-surface-critical-soft: rgba(255, 107, 107, 0.14);
+  --svplus-theme-border: rgba(129, 179, 219, 0.16);
+  --svplus-theme-border-soft: rgba(129, 179, 219, 0.14);
+  --svplus-theme-border-strong: rgba(0, 120, 212, 0.2);
+  --svplus-theme-border-faint: rgba(129, 179, 219, 0.1);
+  --svplus-theme-border-hover: rgba(0, 120, 212, 0.34);
+  --svplus-theme-shadow: 0 22px 50px rgba(6, 18, 34, 0.28);
+  --svplus-theme-banner-detail-bg: rgba(5, 22, 38, 0.22);
+  --svplus-theme-chip-normal-bg: rgba(44, 169, 120, 0.16);
+  --svplus-theme-chip-normal-text: #c5f0dc;
+  --svplus-theme-chip-warning-bg: rgba(255, 190, 92, 0.16);
+  --svplus-theme-chip-warning-text: #ffe2b0;
+  --svplus-theme-chip-critical-bg: rgba(255, 107, 107, 0.16);
+  --svplus-theme-chip-critical-text: #ffd3d3;
+  --svplus-theme-chip-neutral-bg: rgba(191, 227, 255, 0.1);
+  --svplus-theme-chip-neutral-text: #d7ecff;
+  --svplus-theme-chip-maintenance-bg: rgba(149, 162, 182, 0.2);
+  --svplus-theme-chip-maintenance-text: #d9e7ff;
+  --svplus-theme-empty-surface: rgba(5, 22, 38, 0.24);
+  --svplus-theme-empty-border: rgba(129, 179, 219, 0.18);
+  --svplus-theme-loading-gradient: linear-gradient(90deg, rgba(191,227,255,0.05) 0%, rgba(191,227,255,0.12) 50%, rgba(191,227,255,0.05) 100%);
+  --svplus-theme-chart-grid: rgba(129, 179, 219, 0.12);
+  --svplus-theme-chart-axis-line: rgba(129, 179, 219, 0.24);
+  --svplus-theme-chart-axis-text: #c4d4e5;
+  --svplus-theme-chart-tooltip-bg: rgba(8, 22, 38, 0.98);
+  --svplus-theme-chart-tooltip-border: rgba(129, 179, 219, 0.18);
+  --svplus-theme-chart-tooltip-text: #f5fbff;
+  --svplus-theme-series-blue: #69b9ff;
+  --svplus-theme-series-cyan: #8fdcff;
+  --svplus-theme-series-green: #51d5b5;
+  --svplus-theme-series-amber: #ffc15f;
+  --svplus-theme-series-red: #ff7d7d;
+  --svplus-theme-series-blue-strong: #3f9aef;
+  --svplus-theme-series-cyan-strong: #63bfd8;
+  --svplus-theme-series-green-strong: #38a986;
+  --svplus-theme-series-amber-strong: #d89a34;
+  --svplus-theme-series-red-strong: #d96363;
+  --svplus-theme-array-fill-normal: linear-gradient(90deg, #43a8ff 0%, #39d0aa 100%);
+  --svplus-theme-array-fill-warning: linear-gradient(90deg, #ffd36c 0%, #ffae4a 100%);
+  --svplus-theme-array-fill-critical: linear-gradient(90deg, #ff8f8f 0%, #ff637e 100%);
+  --svplus-theme-array-fill-maintenance: linear-gradient(90deg, #85a1c0 0%, #a9c1d8 100%);
+  --svplus-theme-threshold-line: rgba(191, 227, 255, 0.62);
+}
+
+html[data-svplus-host-theme="white"] #svplus-system-dashboard,
+body[data-svplus-host-theme="white"] #svplus-system-dashboard,
+#svplus-system-dashboard[data-svplus-host-theme="white"],
+html[data-svplus-host-theme="white"] #svplus-disk-dashboard,
+body[data-svplus-host-theme="white"] #svplus-disk-dashboard,
+#svplus-disk-dashboard[data-svplus-host-theme="white"],
+html[data-svplus-host-theme="light"] #svplus-system-dashboard,
+body[data-svplus-host-theme="light"] #svplus-system-dashboard,
+#svplus-system-dashboard[data-svplus-host-theme="light"],
+html[data-svplus-host-theme="light"] #svplus-disk-dashboard,
+body[data-svplus-host-theme="light"] #svplus-disk-dashboard,
+#svplus-disk-dashboard[data-svplus-host-theme="light"],
+html[data-svplus-theme-class="light"] #svplus-system-dashboard,
+body[data-svplus-theme-class="light"] #svplus-system-dashboard,
+#svplus-system-dashboard[data-svplus-theme-class="light"],
+html[data-svplus-theme-class="light"] #svplus-disk-dashboard,
+body[data-svplus-theme-class="light"] #svplus-disk-dashboard,
+#svplus-disk-dashboard[data-svplus-theme-class="light"] {
+  --svplus-theme-foreground: #324253;
+  --svplus-theme-text-primary: #324253;
+  --svplus-theme-text-muted: rgba(98, 114, 132, 0.94);
+  --svplus-theme-text-soft: rgba(115, 131, 154, 0.94);
+  --svplus-theme-accent: var(--orange, #be6b18);
+  --svplus-theme-page-top: rgba(248, 243, 236, 0.985);
+  --svplus-theme-page-bottom: rgba(242, 236, 228, 0.99);
+  --svplus-theme-panel: rgba(255, 255, 255, 0.88);
+  --svplus-theme-panel-strong: rgba(249, 244, 237, 0.96);
+  --svplus-theme-panel-soft: rgba(122, 102, 72, 0.06);
+  --svplus-theme-surface-subtle: rgba(122, 102, 72, 0.05);
+  --svplus-theme-surface-neutral-soft: rgba(122, 102, 72, 0.08);
+  --svplus-theme-surface-warning-soft: rgba(190, 107, 24, 0.12);
+  --svplus-theme-surface-critical-soft: rgba(194, 92, 80, 0.12);
+  --svplus-theme-border: rgba(122, 102, 72, 0.18);
+  --svplus-theme-border-soft: rgba(122, 102, 72, 0.14);
+  --svplus-theme-border-strong: rgba(122, 102, 72, 0.18);
+  --svplus-theme-border-faint: rgba(122, 102, 72, 0.1);
+  --svplus-theme-border-hover: rgba(122, 102, 72, 0.28);
+  --svplus-theme-shadow: 0 18px 36px rgba(113, 84, 52, 0.12);
+  --svplus-theme-banner-error-bg: rgba(194, 92, 80, 0.1);
+  --svplus-theme-banner-error-border: rgba(194, 92, 80, 0.18);
+  --svplus-theme-banner-error-text: #7a3028;
+  --svplus-theme-banner-detail-bg: rgba(122, 102, 72, 0.08);
+  --svplus-theme-banner-detail-text: #5a3626;
+  --svplus-theme-chip-normal-bg: rgba(44, 169, 120, 0.12);
+  --svplus-theme-chip-normal-text: #216e52;
+  --svplus-theme-chip-warning-bg: rgba(190, 107, 24, 0.12);
+  --svplus-theme-chip-warning-text: #7d4b16;
+  --svplus-theme-chip-critical-bg: rgba(194, 92, 80, 0.12);
+  --svplus-theme-chip-critical-text: #8a3d35;
+  --svplus-theme-chip-neutral-bg: rgba(122, 102, 72, 0.09);
+  --svplus-theme-chip-neutral-text: #5b6a7e;
+  --svplus-theme-chip-maintenance-bg: rgba(115, 131, 154, 0.14);
+  --svplus-theme-chip-maintenance-text: #4f6178;
+  --svplus-theme-empty-surface: rgba(122, 102, 72, 0.05);
+  --svplus-theme-empty-border: rgba(122, 102, 72, 0.18);
+  --svplus-theme-loading-gradient: linear-gradient(90deg, rgba(122,102,72,0.06) 0%, rgba(122,102,72,0.14) 50%, rgba(122,102,72,0.06) 100%);
+  --svplus-theme-chart-grid: rgba(122, 102, 72, 0.12);
+  --svplus-theme-chart-axis-line: rgba(122, 102, 72, 0.2);
+  --svplus-theme-chart-axis-text: rgba(98, 114, 132, 0.94);
+  --svplus-theme-chart-tooltip-bg: rgba(255, 250, 244, 0.98);
+  --svplus-theme-chart-tooltip-border: rgba(122, 102, 72, 0.18);
+  --svplus-theme-chart-tooltip-text: #324253;
+  --svplus-theme-series-blue: #3b9be3;
+  --svplus-theme-series-cyan: #58bed8;
+  --svplus-theme-series-green: #2ca978;
+  --svplus-theme-series-amber: #d59128;
+  --svplus-theme-series-red: #d95c5c;
+  --svplus-theme-series-blue-strong: #2f7fbe;
+  --svplus-theme-series-cyan-strong: #4aa0b7;
+  --svplus-theme-series-green-strong: #227e5b;
+  --svplus-theme-series-amber-strong: #a86f18;
+  --svplus-theme-series-red-strong: #b34d4d;
+  --svplus-theme-array-fill-normal: linear-gradient(90deg, #2f8fda 0%, #2ca978 100%);
+  --svplus-theme-array-fill-warning: linear-gradient(90deg, #d6ad49 0%, #c87a2c 100%);
+  --svplus-theme-array-fill-critical: linear-gradient(90deg, #d97a6d 0%, #c95368 100%);
+  --svplus-theme-array-fill-maintenance: linear-gradient(90deg, #7b889c 0%, #95a4b9 100%);
+  --svplus-theme-threshold-line: rgba(90, 105, 123, 0.55);
+}

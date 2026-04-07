@@ -2,17 +2,25 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.33">
+<!ENTITY version   "2026.04.07.35">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "0f63b32427d2b022cc328e92108068d7">
+<!ENTITY MD5 "c7d7c02724c14074a098a0966690224f">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.35
+- Maintenance: Refresh package metadata and build artifacts
+
+###2026.04.07.34
+- UI: Move the Stats dashboards onto a shared theme-token layer so Disk Stats and System Stats no longer hardcode a dark palette
+- UI: Add explicit host-theme palettes for Black, Gray, Azure, and White while keeping the commander layout and charts readable across all supported Unraid themes
+- Maintenance: Stamp normalized host-theme attributes from the page shell and load the shared Stats theme stylesheet before the dashboard-specific CSS
 
 ###2026.04.07.33
 - UI: Add new commander-style System Stats graphs for load average, CPU state mix, swap usage, and network errors alongside the existing CPU, memory, network, and storage charts

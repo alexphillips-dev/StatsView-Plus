@@ -21,6 +21,16 @@ if (($var['fsState'] ?? '') == "Stopped"):
 endif;
 
 $plugin = 'statsview.plus';
+$host_theme_name = strtolower(trim((string)($display['theme'] ?? '')));
+$host_theme_class = '';
+if ($host_theme_name === 'grey') {
+  $host_theme_name = 'gray';
+}
+if (strpos($host_theme_name, 'white') !== false || strpos($host_theme_name, 'light') !== false) {
+  $host_theme_class = 'light';
+} elseif (strpos($host_theme_name, 'black') !== false || strpos($host_theme_name, 'gray') !== false || strpos($host_theme_name, 'azure') !== false) {
+  $host_theme_class = 'dark';
+}
 $cfg = parse_plugin_cfg($plugin);
 $show = trim((string)($cfg['show'] ?? 'cpu,ram,com,hdd'));
 if (!function_exists('statsview_plus_system_page_modules')) {
@@ -195,12 +205,46 @@ $dashboard_config = [
   ]
 ];
 ?>
+<script>
+window.StatsViewPlusHostThemeName = <?=json_encode($host_theme_name, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+window.StatsViewPlusHostThemeClass = <?=json_encode($host_theme_class, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
+(function applyStatsViewHostTheme(rawThemeName, rawThemeClass) {
+  var safeThemeName = String(rawThemeName || '').trim().toLowerCase();
+  var safeThemeClass = String(rawThemeClass || '').trim().toLowerCase();
+
+  function applyAttributes() {
+    try {
+      if (safeThemeName) {
+        document.documentElement && document.documentElement.setAttribute('data-svplus-host-theme', safeThemeName);
+        document.body && document.body.setAttribute('data-svplus-host-theme', safeThemeName);
+      }
+      if (safeThemeClass) {
+        document.documentElement && document.documentElement.setAttribute('data-svplus-theme-class', safeThemeClass);
+        document.body && document.body.setAttribute('data-svplus-theme-class', safeThemeClass);
+        document.documentElement && (document.documentElement.style.colorScheme = safeThemeClass);
+      }
+    } catch (_error) {}
+  }
+
+  applyAttributes();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyAttributes, { once: true });
+  }
+})(window.StatsViewPlusHostThemeName, window.StatsViewPlusHostThemeClass);
+</script>
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/StatsTheme.css", $page_version)?>">
 <link id="svplus-system-stylesheet" rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemStats.css", $page_version)?>">
 
-<div id="svplus-system-dashboard" class="svplus-system-dashboard is-loading" style="--svplus-system-columns: <?=$columns?>;">
+<div
+  id="svplus-system-dashboard"
+  class="svplus-system-dashboard is-loading"
+  style="--svplus-system-columns: <?=$columns?>;"
+  <?if ($host_theme_name !== ''):?>data-svplus-host-theme="<?=htmlspecialchars($host_theme_name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')?>"<?endif;?>
+  <?if ($host_theme_class !== ''):?>data-svplus-theme-class="<?=htmlspecialchars($host_theme_class, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')?>"<?endif;?>
+>
   <div class="svplus-system-shell">
     <header class="svplus-system-head">
       <div class="svplus-system-head-copy">

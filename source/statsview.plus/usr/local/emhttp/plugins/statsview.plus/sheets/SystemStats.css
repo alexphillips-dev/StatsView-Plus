@@ -1,17 +1,60 @@
 .svplus-system-dashboard {
-  --sv-bg: linear-gradient(180deg, #0b1220 0%, #111c2f 100%);
-  --sv-panel: rgba(13, 24, 42, 0.82);
-  --sv-panel-strong: rgba(15, 28, 47, 0.94);
-  --sv-panel-soft: rgba(255, 255, 255, 0.05);
-  --sv-border: rgba(148, 163, 184, 0.18);
-  --sv-text: #e7eef8;
-  --sv-text-muted: #91a4bf;
-  --sv-text-soft: #b8c6da;
-  --sv-accent: #4dd3ff;
-  --sv-good: #37d39a;
-  --sv-warn: #ffb84d;
-  --sv-bad: #ff6b6b;
-  --sv-shadow: 0 24px 60px rgba(4, 11, 21, 0.35);
+  --sv-surface-page-top: var(--svplus-theme-page-top, rgba(11, 18, 32, 0.98));
+  --sv-surface-page-bottom: var(--svplus-theme-page-bottom, rgba(17, 28, 47, 0.985));
+  --sv-panel: var(--svplus-theme-panel, rgba(13, 24, 42, 0.82));
+  --sv-panel-strong: var(--svplus-theme-panel-strong, rgba(15, 28, 47, 0.94));
+  --sv-panel-soft: var(--svplus-theme-panel-soft, rgba(255, 255, 255, 0.05));
+  --sv-bg: linear-gradient(180deg, var(--sv-surface-page-top) 0%, var(--sv-surface-page-bottom) 100%);
+  --sv-border: var(--svplus-theme-border, rgba(148, 163, 184, 0.18));
+  --sv-border-soft: var(--svplus-theme-border-soft, rgba(148, 163, 184, 0.14));
+  --sv-border-strong: var(--svplus-theme-border-strong, rgba(148, 163, 184, 0.18));
+  --sv-border-faint: var(--svplus-theme-border-faint, rgba(148, 163, 184, 0.1));
+  --sv-border-hover: var(--svplus-theme-border-hover, rgba(148, 163, 184, 0.3));
+  --sv-text: var(--svplus-theme-text-primary, var(--svplus-theme-foreground, var(--text, #e7eef8)));
+  --sv-text-muted: var(--svplus-theme-text-muted, rgba(145, 164, 191, 0.96));
+  --sv-text-soft: var(--svplus-theme-text-soft, rgba(184, 198, 218, 0.96));
+  --sv-accent: var(--svplus-theme-accent, #4dd3ff);
+  --sv-good: var(--svplus-theme-status-good, #37d39a);
+  --sv-warn: var(--svplus-theme-status-warning, #ffb84d);
+  --sv-bad: var(--svplus-theme-status-danger, #ff6b6b);
+  --sv-shadow: var(--svplus-theme-shadow, 0 24px 60px rgba(4, 11, 21, 0.35));
+  --sv-banner-error-bg: var(--svplus-theme-banner-error-bg, rgba(255, 107, 107, 0.16));
+  --sv-banner-error-border: var(--svplus-theme-banner-error-border, rgba(255, 107, 107, 0.25));
+  --sv-banner-error-text: var(--svplus-theme-banner-error-text, #ffd9d9);
+  --sv-banner-detail-bg: var(--svplus-theme-banner-detail-bg, rgba(0, 0, 0, 0.14));
+  --sv-banner-detail-text: var(--svplus-theme-banner-detail-text, #ffeaea);
+  --sv-card-warning-bg: var(--svplus-theme-surface-warning-soft, rgba(255, 184, 77, 0.12));
+  --sv-card-critical-bg: var(--svplus-theme-surface-critical-soft, rgba(255, 107, 107, 0.14));
+  --sv-card-neutral-bg: var(--svplus-theme-surface-neutral-soft, rgba(255, 255, 255, 0.06));
+  --sv-card-surface: var(--svplus-theme-surface-subtle, rgba(255, 255, 255, 0.04));
+  --sv-chip-normal-bg: var(--svplus-theme-chip-normal-bg, rgba(55, 211, 154, 0.16));
+  --sv-chip-normal-text: var(--svplus-theme-chip-normal-text, #a4f3d5);
+  --sv-chip-warning-bg: var(--svplus-theme-chip-warning-bg, rgba(255, 184, 77, 0.15));
+  --sv-chip-warning-text: var(--svplus-theme-chip-warning-text, #ffd79b);
+  --sv-chip-critical-bg: var(--svplus-theme-chip-critical-bg, rgba(255, 107, 107, 0.14));
+  --sv-chip-critical-text: var(--svplus-theme-chip-critical-text, #ffb2b2);
+  --sv-chip-neutral-bg: var(--svplus-theme-chip-neutral-bg, rgba(255, 255, 255, 0.08));
+  --sv-chip-neutral-text: var(--svplus-theme-chip-neutral-text, var(--sv-text-soft));
+  --sv-stack-warning-bg: var(--svplus-theme-surface-warning-soft, rgba(255, 184, 77, 0.09));
+  --sv-stack-critical-bg: var(--svplus-theme-surface-critical-soft, rgba(255, 107, 107, 0.11));
+  --sv-empty-border: var(--svplus-theme-empty-border, rgba(148, 163, 184, 0.2));
+  --sv-loading-gradient: var(--svplus-theme-loading-gradient, linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 100%));
+  --sv-chart-grid: var(--svplus-theme-chart-grid, rgba(148, 163, 184, 0.12));
+  --sv-chart-axis-line: var(--svplus-theme-chart-axis-line, rgba(148, 163, 184, 0.25));
+  --sv-chart-axis-text: var(--svplus-theme-chart-axis-text, var(--sv-text-muted));
+  --sv-chart-tooltip-bg: var(--svplus-theme-chart-tooltip-bg, rgba(11, 18, 32, 0.96));
+  --sv-chart-tooltip-border: var(--svplus-theme-chart-tooltip-border, rgba(148, 163, 184, 0.2));
+  --sv-chart-tooltip-text: var(--svplus-theme-chart-tooltip-text, var(--sv-text));
+  --sv-series-blue: var(--svplus-theme-series-blue, #4dd3ff);
+  --sv-series-cyan: var(--svplus-theme-series-cyan, #7ae4ff);
+  --sv-series-green: var(--svplus-theme-series-green, #37d39a);
+  --sv-series-amber: var(--svplus-theme-series-amber, #ffb84d);
+  --sv-series-red: var(--svplus-theme-series-red, #ff6b6b);
+  --sv-series-blue-strong: var(--svplus-theme-series-blue-strong, #3b9be3);
+  --sv-series-cyan-strong: var(--svplus-theme-series-cyan-strong, #58bed8);
+  --sv-series-green-strong: var(--svplus-theme-series-green-strong, #2ca978);
+  --sv-series-amber-strong: var(--svplus-theme-series-amber-strong, #d59128);
+  --sv-series-red-strong: var(--svplus-theme-series-red-strong, #d95c5c);
   color: var(--sv-text);
   margin-top: 8px;
 }
@@ -26,7 +69,7 @@
 
 .svplus-system-head {
   align-items: flex-start;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  border-bottom: 1px solid var(--sv-border-soft);
   display: flex;
   gap: 10px;
   justify-content: space-between;
@@ -87,7 +130,7 @@
   appearance: none;
   -webkit-appearance: none;
   background: var(--sv-panel-strong) !important;
-  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  border: 1px solid var(--sv-border-strong) !important;
   border-radius: 10px !important;
   box-shadow: none !important;
   color: var(--sv-text) !important;
@@ -104,8 +147,8 @@
 }
 
 .svplus-system-action-button:hover {
-  border-color: rgba(148, 163, 184, 0.3) !important;
-  color: #f3f8ff !important;
+  border-color: var(--sv-border-hover) !important;
+  color: var(--sv-text) !important;
 }
 
 .svplus-system-action-button:disabled {
@@ -136,10 +179,10 @@
 }
 
 .svplus-system-banner-error {
-  background: rgba(255, 107, 107, 0.16);
-  border: 1px solid rgba(255, 107, 107, 0.25);
+  background: var(--sv-banner-error-bg);
+  border: 1px solid var(--sv-banner-error-border);
   border-radius: 14px;
-  color: #ffd9d9;
+  color: var(--sv-banner-error-text);
 }
 
 .svplus-system-banner-title {
@@ -150,9 +193,9 @@
 }
 
 .svplus-system-banner-detail {
-  background: rgba(0, 0, 0, 0.14);
+  background: var(--sv-banner-detail-bg);
   border-radius: 10px;
-  color: #ffeaea;
+  color: var(--sv-banner-detail-text);
   font-family: Consolas, "Courier New", monospace;
   font-size: 11px;
   line-height: 1.45;
@@ -165,7 +208,7 @@
 .svplus-system-summary-card,
 .svplus-system-chart-card {
   background: var(--sv-panel);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--sv-border);
   border-radius: 13px;
 }
 
@@ -201,7 +244,7 @@
 
 .svplus-system-control select {
   background: var(--sv-panel-strong);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border: 1px solid var(--sv-border-strong);
   border-radius: 10px;
   color: var(--sv-text);
   font-size: 12px;
@@ -233,15 +276,15 @@
 }
 
 .svplus-system-summary-card.tone-warning {
-  background: rgba(255, 184, 77, 0.12);
+  background: var(--sv-card-warning-bg);
 }
 
 .svplus-system-summary-card.tone-critical {
-  background: rgba(255, 107, 107, 0.14);
+  background: var(--sv-card-critical-bg);
 }
 
 .svplus-system-summary-card.tone-neutral {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--sv-card-neutral-bg);
 }
 
 .svplus-system-summary-label {
@@ -303,7 +346,7 @@
 }
 
 .svplus-system-chart-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--sv-card-surface);
   overflow: hidden;
   padding: 10px;
 }
@@ -373,23 +416,23 @@
 }
 
 .svplus-system-chip.tone-normal {
-  background: rgba(55, 211, 154, 0.16);
-  color: #a4f3d5;
+  background: var(--sv-chip-normal-bg);
+  color: var(--sv-chip-normal-text);
 }
 
 .svplus-system-chip.tone-warning {
-  background: rgba(255, 184, 77, 0.15);
-  color: #ffd79b;
+  background: var(--sv-chip-warning-bg);
+  color: var(--sv-chip-warning-text);
 }
 
 .svplus-system-chip.tone-critical {
-  background: rgba(255, 107, 107, 0.14);
-  color: #ffb2b2;
+  background: var(--sv-chip-critical-bg);
+  color: var(--sv-chip-critical-text);
 }
 
 .svplus-system-chip.tone-neutral {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--sv-text-soft);
+  background: var(--sv-chip-neutral-bg);
+  color: var(--sv-chip-neutral-text);
 }
 
 .svplus-system-stack,
@@ -400,19 +443,19 @@
 
 .svplus-system-stack-item,
 .svplus-system-detail-line {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: var(--sv-card-surface);
+  border: 1px solid var(--sv-border-faint);
   border-radius: 10px;
   gap: 8px;
   padding: 8px 9px;
 }
 
 .svplus-system-stack-item.tone-warning {
-  background: rgba(255, 184, 77, 0.09);
+  background: var(--sv-stack-warning-bg);
 }
 
 .svplus-system-stack-item.tone-critical {
-  background: rgba(255, 107, 107, 0.11);
+  background: var(--sv-stack-critical-bg);
 }
 
 .svplus-system-stack-copy {
@@ -438,8 +481,8 @@
 }
 
 .svplus-system-empty {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px dashed rgba(148, 163, 184, 0.2);
+  background: var(--sv-card-surface);
+  border: 1px dashed var(--sv-empty-border);
   border-radius: 10px;
   font-size: 11px;
   line-height: 1.4;
@@ -448,7 +491,7 @@
 
 .svplus-system-loading {
   animation: svplus-system-pulse 1.25s infinite ease-in-out;
-  background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 100%);
+  background: var(--sv-loading-gradient);
   background-size: 220% 100%;
   border-radius: 10px;
   min-height: 70px;

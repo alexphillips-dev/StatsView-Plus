@@ -181,6 +181,67 @@
     return (Number(value) || 0).toFixed(2);
   }
 
+  function readCssToken(style, name, fallback) {
+    var value = style && typeof style.getPropertyValue === 'function'
+      ? String(style.getPropertyValue(name) || '').trim()
+      : '';
+    return value || fallback;
+  }
+
+  function resolveDashboardTheme($root) {
+    var node = $root && $root[0] ? $root[0] : document.documentElement;
+    var style = window.getComputedStyle(node);
+    return {
+      axisLine: readCssToken(style, '--sv-chart-axis-line', 'rgba(148, 163, 184, 0.25)'),
+      axisText: readCssToken(style, '--sv-chart-axis-text', '#91a4bf'),
+      gridLine: readCssToken(style, '--sv-chart-grid', 'rgba(148, 163, 184, 0.12)'),
+      tooltipBg: readCssToken(style, '--sv-chart-tooltip-bg', 'rgba(11, 18, 32, 0.96)'),
+      tooltipBorder: readCssToken(style, '--sv-chart-tooltip-border', 'rgba(148, 163, 184, 0.2)'),
+      tooltipText: readCssToken(style, '--sv-chart-tooltip-text', '#e7eef8'),
+      series: {
+        cpu: [
+          readCssToken(style, '--sv-series-blue', '#4dd3ff'),
+          readCssToken(style, '--sv-series-cyan', '#7ae4ff'),
+          readCssToken(style, '--sv-series-amber', '#ffb84d')
+        ],
+        load: [
+          readCssToken(style, '--sv-series-blue', '#4dd3ff'),
+          readCssToken(style, '--sv-series-green', '#37d39a'),
+          readCssToken(style, '--sv-series-amber', '#ffb84d')
+        ],
+        cpux: [
+          readCssToken(style, '--sv-series-amber', '#ffb84d'),
+          readCssToken(style, '--sv-series-red', '#ff6b6b'),
+          readCssToken(style, '--sv-series-blue', '#4dd3ff')
+        ],
+        ram: [
+          readCssToken(style, '--sv-series-blue', '#4dd3ff'),
+          readCssToken(style, '--sv-series-green', '#37d39a'),
+          readCssToken(style, '--sv-series-amber', '#ffb84d')
+        ],
+        swap: [
+          readCssToken(style, '--sv-series-blue-strong', '#3b9be3'),
+          readCssToken(style, '--sv-series-green-strong', '#2ca978'),
+          readCssToken(style, '--sv-series-amber-strong', '#d59128')
+        ],
+        com: [
+          readCssToken(style, '--sv-series-blue', '#4dd3ff'),
+          readCssToken(style, '--sv-series-green', '#37d39a')
+        ],
+        edev: [
+          readCssToken(style, '--sv-series-blue', '#4dd3ff'),
+          readCssToken(style, '--sv-series-red', '#ff6b6b'),
+          readCssToken(style, '--sv-series-green', '#37d39a'),
+          readCssToken(style, '--sv-series-amber', '#ffb84d')
+        ],
+        hdd: [
+          readCssToken(style, '--sv-series-amber', '#ffb84d'),
+          readCssToken(style, '--sv-series-red', '#ff6b6b')
+        ]
+      }
+    };
+  }
+
   function buildSummaryCard(label, value, meta, tone) {
     return [
       '<article class="svplus-system-summary-card tone-', escapeHtml(tone || 'normal'), '">',
@@ -246,6 +307,7 @@
     this.lastSnapshot = null;
     this.previousCpuStateRaw = null;
     this.previousErrorCounters = null;
+    this.theme = null;
     this.layoutProbeTimer = null;
     this.pollTimer = null;
     this.snapshotRequest = null;
@@ -281,6 +343,7 @@
     }
 
     Highcharts.setOptions({ global: { useUTC: false } });
+    this.theme = resolveDashboardTheme(this.$root);
     this.bindControls();
     this.buildPanels();
     this.startLayoutProbe();
@@ -317,6 +380,7 @@
   Dashboard.prototype.refreshAll = function(manual) {
     this.resetDerivedCaches();
     this.resetPeaks();
+    this.theme = resolveDashboardTheme(this.$root);
     this.loadCharts();
     this.fetchSnapshot(manual);
   };
@@ -856,12 +920,12 @@
   };
 
   Dashboard.prototype.renderChartLegend = function(key, seriesData) {
-    var def = MODULE_DEFS[key];
+    var tones = ((this.theme && this.theme.series && this.theme.series[key]) || MODULE_DEFS[key].tones || []);
     var html = $.map(seriesData || [], function(series, index) {
       return [
         '<span class="svplus-system-legend-item">',
         '<span class="svplus-system-legend-swatch" style="background:',
-        escapeHtml(def.tones[index] || '#4dd3ff'),
+        escapeHtml(tones[index] || '#4dd3ff'),
         '"></span>',
         '<span class="svplus-system-legend-text">',
         escapeHtml(series.name),
@@ -876,6 +940,8 @@
   Dashboard.prototype.createChart = function(key, seriesData) {
     var self = this;
     var def = MODULE_DEFS[key];
+    var theme = this.theme || resolveDashboardTheme(this.$root);
+    var tones = (theme.series && theme.series[key]) || def.tones || [];
     var type = def.stacked ? 'area' : 'line';
     var chart = new Highcharts.Chart({
       chart: {
@@ -897,20 +963,20 @@
       legend: { enabled: false },
       xAxis: {
         type: 'datetime',
-        lineColor: 'rgba(148, 163, 184, 0.25)',
-        tickColor: 'rgba(148, 163, 184, 0.25)',
+        lineColor: theme.axisLine,
+        tickColor: theme.axisLine,
         labels: {
-          style: { color: '#91a4bf', fontSize: '10px' },
+          style: { color: theme.axisText, fontSize: '10px' },
           y: 16
         }
       },
       yAxis: {
         min: 0,
         max: key === 'cpux' ? 100 : (key === 'cpu' && this.config.cpuScale === 100 ? 100 : null),
-        gridLineColor: 'rgba(148, 163, 184, 0.12)',
+        gridLineColor: theme.gridLine,
         title: { text: null },
         labels: {
-          style: { color: '#91a4bf', fontSize: '10px' },
+          style: { color: theme.axisText, fontSize: '10px' },
           formatter: function() {
             return self.chartValueFormatter(key, this.value);
           }
@@ -918,9 +984,9 @@
       },
       tooltip: {
         shared: true,
-        backgroundColor: 'rgba(11, 18, 32, 0.96)',
-        borderColor: 'rgba(148, 163, 184, 0.2)',
-        style: { color: '#e7eef8' },
+        backgroundColor: theme.tooltipBg,
+        borderColor: theme.tooltipBorder,
+        style: { color: theme.tooltipText },
         formatter: function() {
           var lines = ['<strong>' + Highcharts.dateFormat('%b %e, %H:%M:%S', this.x) + '</strong>'];
           $.each(this.points || [], function(_, point) {
@@ -946,7 +1012,7 @@
       series: $.map(seriesData, function(series, index) {
         return {
           name: series.name,
-          color: def.tones[index] || '#4dd3ff',
+          color: tones[index] || '#4dd3ff',
           data: series.data
         };
       })
