@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.22">
+<!ENTITY version   "2026.04.07.23">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "7b5592edd809ca91b79f329fe1562fe3">
+<!ENTITY MD5 "0966b532163f7f2306954d27a3e7018c">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.23
+- Fix: Load Disk Stats and System Stats frontend assets with a per-version cache-busting token so a fresh plugin update can pull the new dashboard scripts without a manual browser cache clear
+- UI: Increase the System Stats chart footer space and legend positioning so the live graph identifiers no longer clip into the bottom axis labels
 
 ###2026.04.07.22
 - Fix: Remove the forced Stats subtab sync reload path that could trap the Stats tab in an infinite refresh loop on live Unraid

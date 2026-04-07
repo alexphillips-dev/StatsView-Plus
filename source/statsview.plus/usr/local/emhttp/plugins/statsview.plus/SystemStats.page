@@ -414,42 +414,30 @@ window.statsViewSystemDashboardBoot = (function(win, doc) {
 (function(){
   try {
     var win = window;
-    var hostWindow = win.top && win.top.location ? win.top : win;
-    if (!win || !win.sessionStorage) return;
-    var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
-    var pageKey = 'statsview-plus-system-stats';
-    var path = String((win.location && win.location.pathname) || pageKey);
-    var storageKey = 'statsview.page-version:' + pageKey + ':' + path;
-    var reloadKey = storageKey + ':reloaded';
-    var previousVersion = String(win.sessionStorage.getItem(storageKey) || '').trim();
-    var lastReloadedVersion = String(win.sessionStorage.getItem(reloadKey) || '').trim();
-    win.sessionStorage.setItem(storageKey, currentVersion);
-    if (previousVersion && previousVersion !== currentVersion && lastReloadedVersion !== currentVersion) {
-      win.sessionStorage.setItem(reloadKey, currentVersion);
-      var url = new URL(hostWindow.location.href);
-      url.searchParams.set('svplusv', currentVersion);
-      url.searchParams.set('svplusr', String(Date.now()));
-      hostWindow.location.replace(url.toString());
-      return;
-    }
-    if (previousVersion === currentVersion && lastReloadedVersion === currentVersion) {
-      win.sessionStorage.removeItem(reloadKey);
-    }
-  } catch (_statsviewVersionError) {}
-})();
-</script>
-<script>
-(function(){
-  try {
-    var win = window;
     var doc = document;
     var pluginName = <?=json_encode($plugin, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var endpoint = <?=json_encode("/plugins/$plugin/include/HardwareStats.php", JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var latestVersion = currentVersion;
+    var assetNonce = String(Date.now());
 
-    function assetUrl(relativePath, version) {
-      return '/plugins/' + pluginName + '/' + relativePath.replace(/^\/+/, '') + '?v=' + encodeURIComponent(version);
+    function assetUrl(relativePath, version, nonce) {
+      return '/plugins/' + pluginName + '/' + relativePath.replace(/^\/+/, '') + '?v=' + encodeURIComponent(version) + '&t=' + encodeURIComponent(nonce);
+    }
+
+    function resolveAssetNonce(pageKey, version) {
+      var key;
+      var nonce;
+      if (!win.sessionStorage) {
+        return assetNonce;
+      }
+      key = 'statsview.asset-nonce:' + pageKey + ':' + version;
+      nonce = String(win.sessionStorage.getItem(key) || '').trim();
+      if (!nonce) {
+        nonce = assetNonce;
+        win.sessionStorage.setItem(key, nonce);
+      }
+      return nonce;
     }
 
     function loadScript(src, errorMessage, onload) {
@@ -478,17 +466,19 @@ window.statsViewSystemDashboardBoot = (function(win, doc) {
       }
     } catch (_statsviewVersionProbeError) {}
 
+    assetNonce = resolveAssetNonce('system-stats', latestVersion);
+
     if (win.statsViewSystemDashboardConfig) {
       win.statsViewSystemDashboardConfig.assetVersion = latestVersion;
     }
 
     var stylesheet = doc.getElementById('svplus-system-stylesheet');
     if (stylesheet) {
-      stylesheet.href = assetUrl('sheets/SystemStats.css', latestVersion);
+      stylesheet.href = assetUrl('sheets/SystemStats.css', latestVersion, assetNonce);
     }
 
-    loadScript(assetUrl('javascript/jquery.highcharts.js', latestVersion), 'Failed to load the System Stats Highcharts library.', function() {
-      loadScript(assetUrl('javascript/system-stats-dashboard.js', latestVersion), 'Failed to load the System Stats dashboard script.');
+    loadScript(assetUrl('javascript/jquery.highcharts.js', latestVersion, assetNonce), 'Failed to load the System Stats Highcharts library.', function() {
+      loadScript(assetUrl('javascript/system-stats-dashboard.js', latestVersion, assetNonce), 'Failed to load the System Stats dashboard script.');
     });
   } catch (_statsviewAssetLoadError) {
     if (window.statsViewSystemDashboardBoot && typeof window.statsViewSystemDashboardBoot.fail === 'function') {

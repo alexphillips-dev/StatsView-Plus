@@ -188,42 +188,30 @@ window.statsViewDiskDashboardConfig = <?=json_encode($dashboard_config, JSON_UNE
 (function(){
   try {
     var win = window;
-    var hostWindow = win.top && win.top.location ? win.top : win;
-    if (!win || !win.sessionStorage) return;
-    var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
-    var pageKey = 'statsview-plus-disk-stats';
-    var path = String((win.location && win.location.pathname) || pageKey);
-    var storageKey = 'statsview.page-version:' + pageKey + ':' + path;
-    var reloadKey = storageKey + ':reloaded';
-    var previousVersion = String(win.sessionStorage.getItem(storageKey) || '').trim();
-    var lastReloadedVersion = String(win.sessionStorage.getItem(reloadKey) || '').trim();
-    win.sessionStorage.setItem(storageKey, currentVersion);
-    if (previousVersion && previousVersion !== currentVersion && lastReloadedVersion !== currentVersion) {
-      win.sessionStorage.setItem(reloadKey, currentVersion);
-      var url = new URL(hostWindow.location.href);
-      url.searchParams.set('svplusv', currentVersion);
-      url.searchParams.set('svplusr', String(Date.now()));
-      hostWindow.location.replace(url.toString());
-      return;
-    }
-    if (previousVersion === currentVersion && lastReloadedVersion === currentVersion) {
-      win.sessionStorage.removeItem(reloadKey);
-    }
-  } catch (_statsviewVersionError) {}
-})();
-</script>
-<script>
-(function(){
-  try {
-    var win = window;
     var doc = document;
     var pluginName = <?=json_encode($plugin, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var endpoint = <?=json_encode("/plugins/$plugin/include/HardwareStats.php", JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var latestVersion = currentVersion;
+    var assetNonce = String(Date.now());
 
-    function assetUrl(relativePath, version) {
-      return '/plugins/' + pluginName + '/' + relativePath.replace(/^\/+/, '') + '?v=' + encodeURIComponent(version);
+    function assetUrl(relativePath, version, nonce) {
+      return '/plugins/' + pluginName + '/' + relativePath.replace(/^\/+/, '') + '?v=' + encodeURIComponent(version) + '&t=' + encodeURIComponent(nonce);
+    }
+
+    function resolveAssetNonce(pageKey, version) {
+      var key;
+      var nonce;
+      if (!win.sessionStorage) {
+        return assetNonce;
+      }
+      key = 'statsview.asset-nonce:' + pageKey + ':' + version;
+      nonce = String(win.sessionStorage.getItem(key) || '').trim();
+      if (!nonce) {
+        nonce = assetNonce;
+        win.sessionStorage.setItem(key, nonce);
+      }
+      return nonce;
     }
 
     try {
@@ -237,17 +225,19 @@ window.statsViewDiskDashboardConfig = <?=json_encode($dashboard_config, JSON_UNE
       }
     } catch (_statsviewVersionProbeError) {}
 
+    assetNonce = resolveAssetNonce('disk-stats', latestVersion);
+
     if (win.statsViewDiskDashboardConfig) {
       win.statsViewDiskDashboardConfig.assetVersion = latestVersion;
     }
 
     var stylesheet = doc.getElementById('svplus-disk-stylesheet');
     if (stylesheet) {
-      stylesheet.href = assetUrl('sheets/SystemDisks.css', latestVersion);
+      stylesheet.href = assetUrl('sheets/SystemDisks.css', latestVersion, assetNonce);
     }
 
     var script = doc.createElement('script');
-    script.src = assetUrl('javascript/system-disks-dashboard.js', latestVersion);
+    script.src = assetUrl('javascript/system-disks-dashboard.js', latestVersion, assetNonce);
     doc.body.appendChild(script);
   } catch (_statsviewDiskAssetLoadError) {}
 })();

@@ -549,18 +549,24 @@
         animation: false,
         spacingTop: 8,
         spacingRight: 8,
-        spacingBottom: 8,
+        spacingBottom: 14,
         spacingLeft: 8,
         marginTop: 10,
         marginRight: 12,
-        marginBottom: 28,
+        marginBottom: 46,
         marginLeft: 44
       },
       credits: { enabled: false },
       title: { text: null },
       legend: {
         enabled: true,
+        align: 'center',
         borderWidth: 0,
+        layout: 'horizontal',
+        margin: 8,
+        padding: 0,
+        verticalAlign: 'bottom',
+        y: 4,
         itemStyle: { color: '#b8c6da', fontSize: '10px' },
         itemHoverStyle: { color: '#e7eef8' }
       },
@@ -569,7 +575,8 @@
         lineColor: 'rgba(148, 163, 184, 0.25)',
         tickColor: 'rgba(148, 163, 184, 0.25)',
         labels: {
-          style: { color: '#91a4bf', fontSize: '10px' }
+          style: { color: '#91a4bf', fontSize: '10px' },
+          y: 16
         }
       },
       yAxis: {
