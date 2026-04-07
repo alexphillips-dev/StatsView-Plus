@@ -170,7 +170,7 @@ $dashboard_config = [
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemStats.css", $page_version)?>">
+<link id="svplus-system-stylesheet" rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemStats.css", $page_version)?>">
 
 <div id="svplus-system-dashboard" class="svplus-system-dashboard is-loading" style="--svplus-system-columns: <?=$columns?>;">
   <div class="svplus-system-shell">
@@ -441,27 +441,61 @@ window.statsViewSystemDashboardBoot = (function(win, doc) {
 (function(){
   try {
     var win = window;
+    var doc = document;
+    var pluginName = <?=json_encode($plugin, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var endpoint = <?=json_encode("/plugins/$plugin/include/HardwareStats.php", JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
-    var request = new XMLHttpRequest();
-    request.open('POST', endpoint, false);
-    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    request.send('cmd=plugin_version');
-    if (request.status >= 200 && request.status < 300) {
-      var payload = JSON.parse(request.responseText || '{}');
-      var latestVersion = String(payload.pluginVersion || '').trim();
-      if (latestVersion && latestVersion !== currentVersion) {
-        var url = new URL(win.location.href);
-        url.searchParams.set('svplusv', latestVersion);
-        url.searchParams.set('svplusr', String(Date.now()));
-        win.location.replace(url.toString());
-      }
+    var latestVersion = currentVersion;
+
+    function assetUrl(relativePath, version) {
+      return '/plugins/' + pluginName + '/' + relativePath.replace(/^\/+/, '') + '?v=' + encodeURIComponent(version);
     }
-  } catch (_statsviewVersionProbeError) {}
+
+    function loadScript(src, errorMessage, onload) {
+      var script = doc.createElement('script');
+      script.src = src;
+      script.async = false;
+      script.onerror = function() {
+        if (win.statsViewSystemDashboardBoot && typeof win.statsViewSystemDashboardBoot.fail === 'function') {
+          win.statsViewSystemDashboardBoot.fail(errorMessage, { message: src });
+        }
+      };
+      if (typeof onload === 'function') {
+        script.onload = onload;
+      }
+      doc.body.appendChild(script);
+    }
+
+    try {
+      var request = new XMLHttpRequest();
+      request.open('POST', endpoint, false);
+      request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+      request.send('cmd=plugin_version');
+      if (request.status >= 200 && request.status < 300) {
+        var payload = JSON.parse(request.responseText || '{}');
+        latestVersion = String(payload.pluginVersion || '').trim() || currentVersion;
+      }
+    } catch (_statsviewVersionProbeError) {}
+
+    if (win.statsViewSystemDashboardConfig) {
+      win.statsViewSystemDashboardConfig.assetVersion = latestVersion;
+    }
+
+    var stylesheet = doc.getElementById('svplus-system-stylesheet');
+    if (stylesheet) {
+      stylesheet.href = assetUrl('sheets/SystemStats.css', latestVersion);
+    }
+
+    loadScript(assetUrl('javascript/jquery.highcharts.js', latestVersion), 'Failed to load the System Stats Highcharts library.', function() {
+      loadScript(assetUrl('javascript/system-stats-dashboard.js', latestVersion), 'Failed to load the System Stats dashboard script.');
+    });
+  } catch (_statsviewAssetLoadError) {
+    if (window.statsViewSystemDashboardBoot && typeof window.statsViewSystemDashboardBoot.fail === 'function') {
+      window.statsViewSystemDashboardBoot.fail('Failed to bootstrap current System Stats assets.', _statsviewAssetLoadError);
+    }
+  }
 })();
 </script>
-<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/jquery.highcharts.js", $page_version)?>" onerror="window.statsViewSystemDashboardBoot && window.statsViewSystemDashboardBoot.fail('Failed to load the System Stats Highcharts library.', { message: this.src })"></script>
-<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/system-stats-dashboard.js", $page_version)?>" onerror="window.statsViewSystemDashboardBoot && window.statsViewSystemDashboardBoot.fail('Failed to load the System Stats dashboard script.', { message: this.src })"></script>
 
 <?if (!empty($cfg['stats']) && substr($cfg['stats'],0,5)!='Tasks'):?>
 <p><input type="button" value="_(Done)_" onclick="done()"></p>

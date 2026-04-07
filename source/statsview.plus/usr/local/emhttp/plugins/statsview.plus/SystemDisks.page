@@ -102,7 +102,7 @@ $dashboard_config = [
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemDisks.css", $page_version)?>">
+<link id="svplus-disk-stylesheet" rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemDisks.css", $page_version)?>">
 
 <div id="svplus-disk-dashboard" class="svplus-disk-dashboard is-loading">
   <div class="svplus-dashboard-shell">
@@ -215,26 +215,42 @@ window.statsViewDiskDashboardConfig = <?=json_encode($dashboard_config, JSON_UNE
 (function(){
   try {
     var win = window;
+    var doc = document;
+    var pluginName = <?=json_encode($plugin, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var endpoint = <?=json_encode("/plugins/$plugin/include/HardwareStats.php", JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
-    var request = new XMLHttpRequest();
-    request.open('POST', endpoint, false);
-    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    request.send('cmd=plugin_version');
-    if (request.status >= 200 && request.status < 300) {
-      var payload = JSON.parse(request.responseText || '{}');
-      var latestVersion = String(payload.pluginVersion || '').trim();
-      if (latestVersion && latestVersion !== currentVersion) {
-        var url = new URL(win.location.href);
-        url.searchParams.set('svplusv', latestVersion);
-        url.searchParams.set('svplusr', String(Date.now()));
-        win.location.replace(url.toString());
-      }
+    var latestVersion = currentVersion;
+
+    function assetUrl(relativePath, version) {
+      return '/plugins/' + pluginName + '/' + relativePath.replace(/^\/+/, '') + '?v=' + encodeURIComponent(version);
     }
-  } catch (_statsviewVersionProbeError) {}
+
+    try {
+      var request = new XMLHttpRequest();
+      request.open('POST', endpoint, false);
+      request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+      request.send('cmd=plugin_version');
+      if (request.status >= 200 && request.status < 300) {
+        var payload = JSON.parse(request.responseText || '{}');
+        latestVersion = String(payload.pluginVersion || '').trim() || currentVersion;
+      }
+    } catch (_statsviewVersionProbeError) {}
+
+    if (win.statsViewDiskDashboardConfig) {
+      win.statsViewDiskDashboardConfig.assetVersion = latestVersion;
+    }
+
+    var stylesheet = doc.getElementById('svplus-disk-stylesheet');
+    if (stylesheet) {
+      stylesheet.href = assetUrl('sheets/SystemDisks.css', latestVersion);
+    }
+
+    var script = doc.createElement('script');
+    script.src = assetUrl('javascript/system-disks-dashboard.js', latestVersion);
+    doc.body.appendChild(script);
+  } catch (_statsviewDiskAssetLoadError) {}
 })();
 </script>
-<script src="<?=statsview_plus_versioned_asset_path($plugin, "javascript/system-disks-dashboard.js", $page_version)?>"></script>
 
 <?if (!empty($cfg['stats']) && substr($cfg['stats'],0,5)!='Tasks'):?>
 <p><input type="button" value="_(Done)_" onclick="done()"></p>
