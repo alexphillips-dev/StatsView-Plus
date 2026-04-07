@@ -189,32 +189,6 @@ window.statsViewDiskDashboardConfig = <?=json_encode($dashboard_config, JSON_UNE
   try {
     var win = window;
     var hostWindow = win.top && win.top.location ? win.top : win;
-    var desiredTab = <?=!empty($cfg['first']) ? json_encode('tab2') : json_encode('tab1')?>;
-    var currentTab = String((document.cookie.match(/(?:^|;\s*)one=([^;]+)/) || [])[1] || '');
-    var guardKey = 'statsview.tab-sync:' + desiredTab;
-
-    document.cookie = 'one=' + desiredTab + '; path=/';
-
-    if (desiredTab !== 'tab1' && win.sessionStorage && !win.sessionStorage.getItem(guardKey)) {
-      win.sessionStorage.setItem(guardKey, '1');
-      var syncUrl = new URL(hostWindow.location.href);
-      syncUrl.searchParams.set('svplustab', desiredTab);
-      syncUrl.searchParams.set('svplusr', String(Date.now()));
-      hostWindow.location.replace(syncUrl.toString());
-      return;
-    }
-
-    if (win.sessionStorage && currentTab === desiredTab) {
-      win.sessionStorage.removeItem(guardKey);
-    }
-  } catch (_statsviewTabSyncError) {}
-})();
-</script>
-<script>
-(function(){
-  try {
-    var win = window;
-    var hostWindow = win.top && win.top.location ? win.top : win;
     if (!win || !win.sessionStorage) return;
     var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var pageKey = 'statsview-plus-disk-stats';
