@@ -479,8 +479,13 @@
       }
       values = self.seriesValueFromSnapshot(key, snapshot);
       $.each(chart.series, function(index, series) {
+        var value = Number(values[index]) || 0;
         var shift = series.data.length >= maxPoints;
-        series.addPoint([timestamp, Number(values[index]) || 0], false, shift, false);
+        if (series.data.length === 0) {
+          // Seed a short baseline on the first realtime refresh so the trace is visible immediately.
+          series.addPoint([timestamp - self.config.pollMs, value], false, false, false);
+        }
+        series.addPoint([timestamp, value], false, shift, false);
       });
       chart.redraw();
     });
@@ -503,6 +508,7 @@
     var self = this;
     var def = MODULE_DEFS[key];
     var type = def.stacked ? 'area' : 'line';
+    var isRealtime = this.state.graph === '0';
     return new Highcharts.Chart({
       chart: {
         renderTo: 'svplus-system-chart-' + key,
@@ -563,10 +569,16 @@
         series: {
           animation: false,
           marker: {
-            enabled: false,
-            radius: 2
+            enabled: isRealtime,
+            radius: isRealtime ? 2.5 : 2
           },
-          lineWidth: 2
+          lineWidth: 2,
+          shadow: false,
+          states: {
+            hover: {
+              lineWidthPlus: 0
+            }
+          }
         },
         area: {
           stacking: def.stacked ? 'normal' : null,
