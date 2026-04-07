@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.20">
+<!ENTITY version   "2026.04.07.21">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "6ee71d79cf12133715a04e4c64118769">
+<!ENTITY MD5 "28cc3d52a7904e706635d0311f065f8b">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.21
+- Fix: Restore the original Stats root `Code` metadata and the configured opening-page tab sync so Unraid lands on the intended Stats subtab again
+- Maintenance: Reapply the old xmenu tab-cookie behavior around the `first` setting for Disk Stats and System Stats after the command-view rewrite dropped it
 
 ###2026.04.07.20
 - Fix: When the installed plugin version changes, Stats pages now refresh the top-level Unraid page with a cache-busting URL instead of only reloading the active subtab frame
