@@ -27,7 +27,179 @@ function bar_color($val) {
   return "greenbar";
 }
 
+function statsview_plus_threshold_state($percent, $warning, $critical, $normal_mode=true) {
+  if (!$normal_mode) {
+    return ['tone'=>'maintenance', 'label'=>_('Maintenance')];
+  }
+  if ($critical>0 && $percent>=$critical) {
+    return ['tone'=>'critical', 'label'=>_('Critical')];
+  }
+  if ($warning>0 && ($critical==0 || $warning<$critical) && $percent>=$warning) {
+    return ['tone'=>'warning', 'label'=>_('Warning')];
+  }
+  return ['tone'=>'normal', 'label'=>_('Normal')];
+}
+
+function statsview_plus_format_bytes($bytes, $unit) {
+  return my_scale($bytes, $unit, null, -1).' '.$unit;
+}
+
+function statsview_plus_disk_dashboard_payload($start_mode, $pools_csv) {
+  $normal_mode = $start_mode=='Normal';
+  $pools = array_values(array_filter(array_map('trim', explode(',', $pools_csv))));
+  if (empty($pools)) {
+    $pools = ['cache'];
+  }
+
+  $disks = (array)parse_ini_file("state/disks.ini", true);
+  $var = [];
+  require_once 'webGui/include/CustomMerge.php';
+  extract(parse_plugin_cfg("dynamix", true));
+
+  $rows = [];
+  $parity = 0;
+  $arraysize = 0;
+  $arrayfree = 0;
+  $data_count = 0;
+  $pool_count = 0;
+  $flash_count = 0;
+
+  foreach ($disks as $disk) {
+    $type = $disk['type']??'';
+    $status = $disk['status']??'';
+    $mounted = ($disk['fsStatus']??'')=='Mounted';
+
+    if ((!$mounted && $type!='Parity') || strpos($status, '_NP')!==false) {
+      continue;
+    }
+
+    if ($type=='Parity') {
+      $parity = max($parity, ($disk['size']??0)*1024);
+      continue;
+    }
+
+    $name = $disk['name']??'';
+    $size_bytes = 0;
+    $free_bytes = 0;
+    $label = '';
+    $type_key = '';
+    $type_label = '';
+
+    switch ($type) {
+    case 'Data':
+      $size_bytes = ($disk['size']??0)*1024;
+      $free_bytes = ($disk['fsFree']??0)*1024;
+      $label = _(my_disk($name), 3);
+      $type_key = 'data';
+      $type_label = _('Data');
+      $arraysize += $size_bytes;
+      $arrayfree += $free_bytes;
+      $data_count++;
+      break;
+    case 'Flash':
+      $size_bytes = ($disk['size']??0)*1024;
+      $free_bytes = ($disk['fsFree']??0)*1024;
+      $label = _(my_disk($name), 3);
+      $type_key = 'flash';
+      $type_label = _('Flash');
+      $flash_count++;
+      break;
+    case 'Cache':
+      if (!in_array($name, $pools, true)) {
+        break;
+      }
+      $size_bytes = (isset($disk['fsSize']) ? $disk['fsSize'] : ($disk['size']??0))*1024;
+      $free_bytes = ($disk['fsFree']??0)*1024;
+      $label = ucfirst($name);
+      $type_key = 'pool';
+      $type_label = _('Pool');
+      $pool_count++;
+      break;
+    }
+
+    if ($size_bytes<=0) {
+      continue;
+    }
+
+    $used_bytes = max(0, $size_bytes-$free_bytes);
+    $free_percent = $normal_mode ? round(100*$free_bytes/$size_bytes) : 100;
+    $used_percent = max(0, 100-$free_percent);
+    $critical = (int)(!empty($disk['critical']) ? $disk['critical'] : ($display['critical']??0));
+    $warning = (int)(!empty($disk['warning']) ? $disk['warning'] : ($display['warning']??0));
+    $state = statsview_plus_threshold_state($used_percent, $warning, $critical, $normal_mode);
+
+    $rows[] = [
+      'key' => $name,
+      'name' => $name,
+      'label' => $label,
+      'type' => $type_key,
+      'typeLabel' => $type_label,
+      'sizeBytes' => $size_bytes,
+      'sizeLabel' => statsview_plus_format_bytes($size_bytes, $unit),
+      'usedBytes' => $used_bytes,
+      'usedLabel' => statsview_plus_format_bytes($used_bytes, $unit),
+      'freeBytes' => $free_bytes,
+      'freeLabel' => statsview_plus_format_bytes($free_bytes, $unit),
+      'usedPercent' => $used_percent,
+      'freePercent' => $free_percent,
+      'warningThreshold' => $warning,
+      'criticalThreshold' => $critical,
+      'state' => $state['tone'],
+      'stateLabel' => $state['label']
+    ];
+  }
+
+  $type_order = ['data'=>0, 'pool'=>1, 'flash'=>2];
+  usort($rows, function($left, $right) use ($type_order) {
+    $left_order = $type_order[$left['type']] ?? 99;
+    $right_order = $type_order[$right['type']] ?? 99;
+    if ($left_order!=$right_order) {
+      return $left_order<=>$right_order;
+    }
+    return strnatcasecmp($left['label'], $right['label']);
+  });
+
+  $arrayused = max(0, $arraysize-$arrayfree);
+  $freepercent = $arraysize>0 ? ($normal_mode ? round(100*$arrayfree/$arraysize) : 100) : 0;
+  $arraypercent = $arraysize>0 ? max(0, 100-$freepercent) : 0;
+  $summary_state = statsview_plus_threshold_state($arraypercent, (int)($display['warning']??0), (int)($display['critical']??0), $normal_mode);
+
+  return [
+    'generatedAt' => time(),
+    'mode' => $normal_mode ? 'normal' : 'maintenance',
+    'modeLabel' => $normal_mode ? _('Normal') : _('Maintenance'),
+    'summary' => [
+      'arraySizeBytes' => $arraysize,
+      'arraySizeLabel' => statsview_plus_format_bytes($arraysize, $unit),
+      'arrayUsedBytes' => $arrayused,
+      'arrayUsedLabel' => statsview_plus_format_bytes($arrayused, $unit),
+      'arrayFreeBytes' => $arrayfree,
+      'arrayFreeLabel' => statsview_plus_format_bytes($arrayfree, $unit),
+      'parityBytes' => $parity,
+      'parityLabel' => statsview_plus_format_bytes($parity, $unit),
+      'arrayPercent' => $arraypercent,
+      'freePercent' => $freepercent,
+      'warningThreshold' => (int)($display['warning']??0),
+      'criticalThreshold' => (int)($display['critical']??0),
+      'state' => $summary_state['tone'],
+      'stateLabel' => $summary_state['label'],
+      'diskCount' => count($rows),
+      'dataDiskCount' => $data_count,
+      'poolCount' => $pool_count,
+      'flashCount' => $flash_count
+    ],
+    'rows' => $rows
+  ];
+}
+
 switch ($_POST['cmd']??'') {
+case 'disk_dashboard':
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode(
+    statsview_plus_disk_dashboard_payload($_POST['startMode']??'', $_POST['pools']??''),
+    JSON_UNESCAPED_SLASHES
+  );
+  exit;
 case 'sum':
   $plugin = $_POST['plugin']??'';
   $normal = ($_POST['startMode']??'')=='Normal';
