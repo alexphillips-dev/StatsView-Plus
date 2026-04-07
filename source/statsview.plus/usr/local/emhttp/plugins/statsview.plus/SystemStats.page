@@ -414,6 +414,7 @@ window.statsViewSystemDashboardBoot = (function(win, doc) {
 (function(){
   try {
     var win = window;
+    var hostWindow = win.top && win.top.location ? win.top : win;
     if (!win || !win.sessionStorage) return;
     var currentVersion = <?=json_encode($page_version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;
     var pageKey = 'statsview-plus-system-stats';
@@ -425,10 +426,10 @@ window.statsViewSystemDashboardBoot = (function(win, doc) {
     win.sessionStorage.setItem(storageKey, currentVersion);
     if (previousVersion && previousVersion !== currentVersion && lastReloadedVersion !== currentVersion) {
       win.sessionStorage.setItem(reloadKey, currentVersion);
-      var url = new URL(win.location.href);
+      var url = new URL(hostWindow.location.href);
       url.searchParams.set('svplusv', currentVersion);
       url.searchParams.set('svplusr', String(Date.now()));
-      win.location.replace(url.toString());
+      hostWindow.location.replace(url.toString());
       return;
     }
     if (previousVersion === currentVersion && lastReloadedVersion === currentVersion) {

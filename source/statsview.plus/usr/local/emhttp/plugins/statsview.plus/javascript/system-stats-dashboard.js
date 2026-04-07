@@ -75,13 +75,15 @@
     try {
       var current = String(window.statsViewSystemDashboardConfig && window.statsViewSystemDashboardConfig.assetVersion || '').trim();
       var target = String(nextVersion || '').trim();
+      var hostWindow = null;
       if (!current || !target || current === target) {
         return false;
       }
-      var url = new URL(window.location.href);
+      hostWindow = window.top && window.top.location ? window.top : window;
+      var url = new URL(hostWindow.location.href);
       url.searchParams.set('svplusv', target);
       url.searchParams.set('svplusr', String(Date.now()));
-      window.location.replace(url.toString());
+      hostWindow.location.replace(url.toString());
       return true;
     } catch (_error) {
       return false;

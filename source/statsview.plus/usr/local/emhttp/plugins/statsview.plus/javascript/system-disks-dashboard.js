@@ -28,13 +28,15 @@
       var win = window;
       var current = String(win.statsViewDiskDashboardConfig && win.statsViewDiskDashboardConfig.assetVersion || '').trim();
       var target = String(nextVersion || '').trim();
+      var hostWindow = null;
       if (!target || !current || target === current) {
         return false;
       }
-      var url = new URL(win.location.href);
+      hostWindow = win.top && win.top.location ? win.top : win;
+      var url = new URL(hostWindow.location.href);
       url.searchParams.set('svplusv', target);
       url.searchParams.set('svplusr', String(Date.now()));
-      win.location.replace(url.toString());
+      hostWindow.location.replace(url.toString());
       return true;
     } catch (_error) {
       return false;
