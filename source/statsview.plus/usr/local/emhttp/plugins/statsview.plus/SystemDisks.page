@@ -102,6 +102,7 @@ $dashboard_config = [
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<link id="svplus-stats-tabs-stylesheet" rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/StatsTabs.css", $page_version)?>">
 <link id="svplus-disk-stylesheet" rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemDisks.css", $page_version)?>">
 
 <div id="svplus-disk-dashboard" class="svplus-disk-dashboard is-loading">
@@ -235,6 +236,15 @@ window.statsViewDiskDashboardConfig = <?=json_encode($dashboard_config, JSON_UNE
     if (stylesheet) {
       stylesheet.href = assetUrl('sheets/SystemDisks.css', latestVersion, assetNonce);
     }
+
+    var tabsStylesheet = doc.getElementById('svplus-stats-tabs-stylesheet');
+    if (tabsStylesheet) {
+      tabsStylesheet.href = assetUrl('sheets/StatsTabs.css', latestVersion, assetNonce);
+    }
+
+    var tabsScript = doc.createElement('script');
+    tabsScript.src = assetUrl('javascript/stats-tabs-theme.js', latestVersion, assetNonce);
+    doc.body.appendChild(tabsScript);
 
     var script = doc.createElement('script');
     script.src = assetUrl('javascript/system-disks-dashboard.js', latestVersion, assetNonce);

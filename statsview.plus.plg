@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.26">
+<!ENTITY version   "2026.04.07.27">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "2a0df12b0929f0d98446405762cfee83">
+<!ENTITY MD5 "31946bf20bdcc8de3bb1302a31aae292">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.27
+- UI: Add a shared commander-style theme layer for the Stats subtabs so Disk Stats and System Stats use dark surfaced tabs, commander typography, and a cyan active-state accent instead of the default host tab styling
+- Maintenance: Scope the tab theming only to the Stats xmenu by detecting the Disk Stats and System Stats tab bar before applying the shared tab classes
 
 ###2026.04.07.26
 - Fix: Defer initial System Stats chart creation until the chart containers have a real visible size, preventing the hidden-tab bootstrap path that could leave graphs blank until a manual hard refresh
