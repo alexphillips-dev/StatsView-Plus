@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.24">
+<!ENTITY version   "2026.04.07.25">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "71b2c62231f8f3ffb46c34d865b73b88">
+<!ENTITY MD5 "034926013309a4fabe421b13f0a4019a">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.25
+- Fix: Reflow and, when needed, rebuild System Stats charts after the subtab becomes visible so live graphs do not stay blank when the page was initialized while hidden
+- UI: Add more left and right spacing to the System Stats legend row so the series labels have cleaner separation
 
 ###2026.04.07.24
 - Fix: Refresh the active Disk Stats or System Stats subtab page itself when the backend reports a newer installed plugin version, so an already-open dashboard can pick up the updated page shell after install without relying on a full browser hard refresh

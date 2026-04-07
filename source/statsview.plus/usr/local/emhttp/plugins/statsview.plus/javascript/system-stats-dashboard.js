@@ -186,8 +186,10 @@
       return !!MODULE_DEFS[key];
     });
     this.charts = {};
+    this.chartSeriesData = {};
     this.peaks = {};
     this.lastSnapshot = null;
+    this.layoutProbeTimer = null;
     this.pollTimer = null;
     this.snapshotRequest = null;
     this.historyRequests = [];
@@ -224,6 +226,7 @@
     Highcharts.setOptions({ global: { useUTC: false } });
     this.bindControls();
     this.buildPanels();
+    this.startLayoutProbe();
     this.loadCharts();
     this.fetchSnapshot(false);
     reportBootSuccess();
@@ -258,6 +261,25 @@
     this.resetPeaks();
     this.loadCharts();
     this.fetchSnapshot(manual);
+  };
+
+  Dashboard.prototype.startLayoutProbe = function() {
+    var self = this;
+    if (this.layoutProbeTimer) {
+      return;
+    }
+
+    this.layoutProbeTimer = window.setInterval(function() {
+      self.ensureChartsVisible();
+    }, 1200);
+
+    $(window).on('resize.svplusSystemStats', function() {
+      self.ensureChartsVisible();
+    });
+
+    $(document).on('visibilitychange.svplusSystemStats', function() {
+      self.ensureChartsVisible();
+    });
   };
 
   Dashboard.prototype.resetPeaks = function() {
@@ -391,6 +413,64 @@
     this.charts = {};
   };
 
+  Dashboard.prototype.chartContainerSize = function(key) {
+    var node = document.getElementById('svplus-system-chart-' + key);
+    return {
+      width: node ? Math.max(0, node.clientWidth || 0) : 0,
+      height: node ? Math.max(0, node.clientHeight || 0) : 0
+    };
+  };
+
+  Dashboard.prototype.chartNeedsRepair = function(chart) {
+    return !chart || chart.chartWidth <= 40 || chart.chartHeight <= 40 || chart.plotWidth <= 20 || chart.plotHeight <= 20;
+  };
+
+  Dashboard.prototype.rebuildChart = function(key) {
+    var chart = this.charts[key];
+    var seriesData = this.chartSeriesData[key];
+
+    if (!seriesData) {
+      return;
+    }
+
+    if (chart && typeof chart.destroy === 'function') {
+      chart.destroy();
+    }
+
+    this.charts[key] = this.createChart(key, seriesData);
+
+    if (this.lastSnapshot && this.lastSnapshot.snapshot && this.state.graph === '0') {
+      this.updateRealtimeCharts(this.lastSnapshot.snapshot, (this.lastSnapshot.generatedAt || 0) * 1000);
+    }
+  };
+
+  Dashboard.prototype.ensureChartsVisible = function() {
+    var self = this;
+
+    $.each(this.modules, function(_, key) {
+      var chart = self.charts[key];
+      var size = self.chartContainerSize(key);
+
+      if (!chart || size.width <= 40 || size.height <= 40) {
+        return;
+      }
+
+      if (typeof chart.setSize === 'function') {
+        chart.setSize(size.width, size.height, false);
+      }
+      if (typeof chart.reflow === 'function') {
+        chart.reflow();
+      }
+      if (typeof chart.redraw === 'function') {
+        chart.redraw(false);
+      }
+
+      if (self.chartNeedsRepair(chart)) {
+        self.rebuildChart(key);
+      }
+    });
+  };
+
   Dashboard.prototype.loadCharts = function() {
     var self = this;
     this.$frame.prop('disabled', this.state.graph !== '0');
@@ -452,6 +532,7 @@
           if (self.lastSnapshot && self.lastSnapshot.snapshot) {
             self.renderCurrentMetrics(self.lastSnapshot.snapshot);
           }
+          self.ensureChartsVisible();
         }
       });
     });
@@ -568,6 +649,14 @@
     var self = this;
     var def = MODULE_DEFS[key];
     var type = def.stacked ? 'area' : 'line';
+    this.chartSeriesData[key] = $.map(seriesData, function(series) {
+      return {
+        name: series.name,
+        data: $.map(series.data || [], function(point) {
+          return [[point[0], point[1]]];
+        })
+      };
+    });
     var chart = new Highcharts.Chart({
       chart: {
         renderTo: 'svplus-system-chart-' + key,
@@ -663,6 +752,7 @@
     this.renderPeaks();
     this.renderContext(payload);
     this.$lastRefresh.text(formatTimestamp(payload.generatedAt));
+    this.ensureChartsVisible();
   };
 
   Dashboard.prototype.renderSummary = function(snapshot) {

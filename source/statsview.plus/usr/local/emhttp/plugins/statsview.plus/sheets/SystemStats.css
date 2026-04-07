@@ -328,9 +328,9 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 16px;
+  gap: 10px 24px;
   justify-content: center;
-  padding: 8px 16px 0;
+  padding: 10px 24px 0;
 }
 
 .svplus-system-legend-item {
@@ -537,8 +537,8 @@
 
   .svplus-system-chart-legend {
     justify-content: flex-start;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .svplus-system-headline {
