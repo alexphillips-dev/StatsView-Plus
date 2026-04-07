@@ -1,6 +1,8 @@
 (function(window, document) {
   'use strict';
 
+  var observerKey = '__svplusStatsTabsObserver';
+
   function stylesheetHref() {
     var script = document.currentScript;
     var scripts;
@@ -64,6 +66,111 @@
     return !!(labels['disk stats'] && labels['system stats']);
   }
 
+  function activeTabItem(nav) {
+    return nav.querySelector('li.ui-state-active, li.ui-tabs-active, li[aria-selected="true"]');
+  }
+
+  function styleTabAnchor(anchor) {
+    if (!anchor) {
+      return;
+    }
+
+    anchor.style.alignItems = 'center';
+    anchor.style.color = '#b8c6da';
+    anchor.style.display = 'inline-flex';
+    anchor.style.fontFamily = '"Segoe UI Variable Text", "Segoe UI", sans-serif';
+    anchor.style.fontSize = '12px';
+    anchor.style.fontWeight = '700';
+    anchor.style.gap = '8px';
+    anchor.style.letterSpacing = '0.06em';
+    anchor.style.lineHeight = '1';
+    anchor.style.padding = '11px 14px 10px';
+    anchor.style.textDecoration = 'none';
+    anchor.style.textTransform = 'uppercase';
+  }
+
+  function styleTabItem(item, isActive) {
+    var links = item ? item.querySelectorAll('a') : [];
+    var icons = item ? item.querySelectorAll('.fa, .icon, i') : [];
+    var index = 0;
+
+    if (!item) {
+      return;
+    }
+
+    item.style.background = isActive ? 'linear-gradient(180deg, rgba(17, 28, 47, 0.98) 0%, rgba(13, 24, 42, 0.98) 100%)' : 'rgba(13, 24, 42, 0.9)';
+    item.style.border = isActive ? '1px solid rgba(77, 211, 255, 0.28)' : '1px solid rgba(148, 163, 184, 0.16)';
+    item.style.borderBottom = isActive ? '2px solid #4dd3ff' : '1px solid rgba(148, 163, 184, 0.16)';
+    item.style.borderRadius = '12px 12px 0 0';
+    item.style.boxShadow = 'none';
+    item.style.margin = '0';
+    item.style.minHeight = '0';
+    item.style.padding = '0';
+    item.style.position = 'relative';
+
+    for (index = 0; index < links.length; index += 1) {
+      styleTabAnchor(links[index]);
+      links[index].style.color = isActive ? '#f3f8ff' : '#b8c6da';
+    }
+
+    for (index = 0; index < icons.length; index += 1) {
+      icons[index].style.color = '#7ae4ff';
+      icons[index].style.fontSize = '11px';
+    }
+  }
+
+  function styleTabBar(nav) {
+    var items;
+    var active;
+    var index;
+
+    if (!nav) {
+      return;
+    }
+
+    nav.style.alignItems = 'center';
+    nav.style.background = 'transparent';
+    nav.style.border = 'none';
+    nav.style.display = 'flex';
+    nav.style.gap = '8px';
+    nav.style.margin = '0 0 12px';
+    nav.style.padding = '0';
+
+    if (nav.parentElement) {
+      nav.parentElement.style.background = 'transparent';
+      nav.parentElement.style.border = 'none';
+      nav.parentElement.style.padding = '0';
+    }
+
+    items = nav.querySelectorAll('li');
+    active = activeTabItem(nav);
+
+    for (index = 0; index < items.length; index += 1) {
+      styleTabItem(items[index], items[index] === active);
+    }
+  }
+
+  function observeTabBar(nav) {
+    var observer;
+
+    if (!nav || nav[observerKey]) {
+      return;
+    }
+
+    observer = new MutationObserver(function() {
+      styleTabBar(nav);
+    });
+
+    observer.observe(nav, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['class', 'aria-selected']
+    });
+
+    nav[observerKey] = observer;
+  }
+
   function applyTheme(doc) {
     var navs;
     var index;
@@ -82,6 +189,8 @@
       if (navs[index].parentElement) {
         navs[index].parentElement.classList.add('svplus-stats-tabframe');
       }
+      styleTabBar(navs[index]);
+      observeTabBar(navs[index]);
     }
   }
 
