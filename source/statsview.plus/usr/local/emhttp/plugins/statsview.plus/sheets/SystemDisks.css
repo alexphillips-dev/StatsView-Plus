@@ -88,24 +88,6 @@
   gap: 6px;
 }
 
-.svplus-refresh-button {
-  background: linear-gradient(135deg, #18baff 0%, #0e8dff 100%);
-  border: 0;
-  border-radius: 999px;
-  color: #06121f;
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 7px 11px;
-  text-transform: uppercase;
-}
-
-.svplus-refresh-button:disabled {
-  cursor: wait;
-  opacity: 0.7;
-}
-
 .svplus-refresh-meta {
   font-size: 10px;
   margin: 0;
@@ -534,10 +516,6 @@
   background-size: 220% 100%;
   border-radius: 10px;
   min-height: 70px;
-}
-
-.svplus-disk-dashboard.is-loading .svplus-refresh-button {
-  opacity: 0.8;
 }
 
 @keyframes svplus-pulse {

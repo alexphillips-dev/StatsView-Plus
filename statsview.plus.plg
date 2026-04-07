@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.30">
+<!ENTITY version   "2026.04.07.31">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "41e2e94d1af4c4033d687a2d21049df3">
+<!ENTITY MD5 "3c19666fe5147ce52fd3a9515b8c2c6d">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.31
+- Maintenance: Remove the inactive Stats subtab theming experiment and delete its unused stylesheet/script so the plugin no longer ships tab-theme code that is not taking effect on live Unraid
+- Maintenance: Remove leftover unused Stats values and code paths, including the unused System Stats `refresh` label, the unused `emptySeriesFor` helper, and the dead Disk Stats refresh-button CSS
 
 ###2026.04.07.30
 - UI: Broaden the runtime Stats subtab matcher so the commander tab theme can attach by visible Disk Stats and System Stats labels even when Unraid renders a different tab wrapper structure

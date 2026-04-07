@@ -116,7 +116,6 @@ $dashboard_config = [
   'labels' => [
     'title' => _('System Command View'),
     'subtitle' => _('Live telemetry, rolling charts, and historical trends across CPU, memory, network, and storage'),
-    'refresh' => _('Refresh'),
     'reset' => _('Reset'),
     'timeframe' => _('Timeframe'),
     'window' => _('Window'),
@@ -170,7 +169,6 @@ $dashboard_config = [
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link id="svplus-stats-tabs-stylesheet" rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/StatsTabs.css", $page_version)?>">
 <link id="svplus-system-stylesheet" rel="stylesheet" href="<?=statsview_plus_versioned_asset_path($plugin, "sheets/SystemStats.css", $page_version)?>">
 
 <div id="svplus-system-dashboard" class="svplus-system-dashboard is-loading" style="--svplus-system-columns: <?=$columns?>;">
@@ -478,15 +476,8 @@ window.statsViewSystemDashboardBoot = (function(win, doc) {
       stylesheet.href = assetUrl('sheets/SystemStats.css', latestVersion, assetNonce);
     }
 
-    var tabsStylesheet = doc.getElementById('svplus-stats-tabs-stylesheet');
-    if (tabsStylesheet) {
-      tabsStylesheet.href = assetUrl('sheets/StatsTabs.css', latestVersion, assetNonce);
-    }
-
-    loadScript(assetUrl('javascript/stats-tabs-theme.js', latestVersion, assetNonce), 'Failed to load the Stats tab theme script.', function() {
-      loadScript(assetUrl('javascript/jquery.highcharts.js', latestVersion, assetNonce), 'Failed to load the System Stats Highcharts library.', function() {
+    loadScript(assetUrl('javascript/jquery.highcharts.js', latestVersion, assetNonce), 'Failed to load the System Stats Highcharts library.', function() {
       loadScript(assetUrl('javascript/system-stats-dashboard.js', latestVersion, assetNonce), 'Failed to load the System Stats dashboard script.');
-      });
     });
   } catch (_statsviewAssetLoadError) {
     if (window.statsViewSystemDashboardBoot && typeof window.statsViewSystemDashboardBoot.fail === 'function') {

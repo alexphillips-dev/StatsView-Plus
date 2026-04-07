@@ -590,15 +590,6 @@
     });
   };
 
-  Dashboard.prototype.emptySeriesFor = function(key) {
-    return $.map(MODULE_DEFS[key].series, function(series) {
-      return {
-        name: series.name,
-        data: []
-      };
-    });
-  };
-
   Dashboard.prototype.seedRealtimeSeries = function(key) {
     var now = new Date().getTime();
     var older = now - (this.config.pollMs * 2);
