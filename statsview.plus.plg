@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.04">
+<!ENTITY version   "2026.04.07.05">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "83a3850b186408108536fecc41f25b91">
+<!ENTITY MD5 "33207abf4cf467c321df009ac22cef51">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.05
+- UI: Tighten the Disk Stats command-center layout with smaller cards, denser fleet rows, lighter panel spacing, and reduced headline scale
+- UI: Compress the hero, summary grid, sidebar panels, chips, utilization rails, and watchlist blocks so the page fits more data on screen at once
 
 ###2026.04.07.04
 - UI: Replace the legacy Disk Stats Highcharts screen with a new command-center dashboard layout
