@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.25">
+<!ENTITY version   "2026.04.07.26">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "034926013309a4fabe421b13f0a4019a">
+<!ENTITY MD5 "2a0df12b0929f0d98446405762cfee83">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.26
+- Fix: Defer initial System Stats chart creation until the chart containers have a real visible size, preventing the hidden-tab bootstrap path that could leave graphs blank until a manual hard refresh
+- Maintenance: Keep the existing reflow and rebuild repair path as a fallback, but stop relying on it as the primary first-render behavior
 
 ###2026.04.07.25
 - Fix: Reflow and, when needed, rebuild System Stats charts after the subtab becomes visible so live graphs do not stay blank when the page was initialized while hidden

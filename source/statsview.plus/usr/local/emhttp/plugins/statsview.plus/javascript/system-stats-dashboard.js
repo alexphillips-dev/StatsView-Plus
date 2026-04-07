@@ -187,6 +187,7 @@
     });
     this.charts = {};
     this.chartSeriesData = {};
+    this.pendingCharts = {};
     this.peaks = {};
     this.lastSnapshot = null;
     this.layoutProbeTimer = null;
@@ -411,6 +412,7 @@
       }
     });
     this.charts = {};
+    this.pendingCharts = {};
   };
 
   Dashboard.prototype.chartContainerSize = function(key) {
@@ -425,6 +427,46 @@
     return !chart || chart.chartWidth <= 40 || chart.chartHeight <= 40 || chart.plotWidth <= 20 || chart.plotHeight <= 20;
   };
 
+  Dashboard.prototype.canRenderChart = function(key) {
+    var size = this.chartContainerSize(key);
+    return size.width > 40 && size.height > 40;
+  };
+
+  Dashboard.prototype.queueChartRender = function(key, seriesData) {
+    this.chartSeriesData[key] = $.map(seriesData, function(series) {
+      return {
+        name: series.name,
+        data: $.map(series.data || [], function(point) {
+          return [[point[0], point[1]]];
+        })
+      };
+    });
+
+    if (!this.canRenderChart(key)) {
+      this.pendingCharts[key] = true;
+      return null;
+    }
+
+    delete this.pendingCharts[key];
+    return this.createChart(key, this.chartSeriesData[key]);
+  };
+
+  Dashboard.prototype.renderPendingCharts = function() {
+    var self = this;
+
+    $.each(this.modules, function(_, key) {
+      if (!self.pendingCharts[key] || self.charts[key] || !self.canRenderChart(key) || !self.chartSeriesData[key]) {
+        return;
+      }
+
+      self.charts[key] = self.createChart(key, self.chartSeriesData[key]);
+
+      if (self.lastSnapshot && self.lastSnapshot.snapshot && self.state.graph === '0') {
+        self.updateRealtimeCharts(self.lastSnapshot.snapshot, (self.lastSnapshot.generatedAt || 0) * 1000);
+      }
+    });
+  };
+
   Dashboard.prototype.rebuildChart = function(key) {
     var chart = this.charts[key];
     var seriesData = this.chartSeriesData[key];
@@ -437,6 +479,13 @@
       chart.destroy();
     }
 
+    if (!this.canRenderChart(key)) {
+      delete this.charts[key];
+      this.pendingCharts[key] = true;
+      return;
+    }
+
+    delete this.pendingCharts[key];
     this.charts[key] = this.createChart(key, seriesData);
 
     if (this.lastSnapshot && this.lastSnapshot.snapshot && this.state.graph === '0') {
@@ -446,6 +495,8 @@
 
   Dashboard.prototype.ensureChartsVisible = function() {
     var self = this;
+
+    this.renderPendingCharts();
 
     $.each(this.modules, function(_, key) {
       var chart = self.charts[key];
@@ -482,11 +533,12 @@
 
     if (this.state.graph === '0') {
       $.each(this.modules, function(_, key) {
-        self.charts[key] = self.createChart(key, self.seedRealtimeSeries(key));
+        self.charts[key] = self.queueChartRender(key, self.seedRealtimeSeries(key));
       });
       if (this.lastSnapshot && this.lastSnapshot.snapshot) {
         this.updateRealtimeCharts(this.lastSnapshot.snapshot, (this.lastSnapshot.generatedAt || 0) * 1000);
       }
+      this.ensureChartsVisible();
       return;
     }
 
@@ -527,7 +579,7 @@
         remaining -= 1;
         if (remaining === 0) {
           $.each(self.modules, function(__, moduleKey) {
-            self.charts[moduleKey] = self.createChart(moduleKey, self.transformHistory(moduleKey, results[moduleKey] || {}));
+            self.charts[moduleKey] = self.queueChartRender(moduleKey, self.transformHistory(moduleKey, results[moduleKey] || {}));
           });
           if (self.lastSnapshot && self.lastSnapshot.snapshot) {
             self.renderCurrentMetrics(self.lastSnapshot.snapshot);
@@ -649,14 +701,6 @@
     var self = this;
     var def = MODULE_DEFS[key];
     var type = def.stacked ? 'area' : 'line';
-    this.chartSeriesData[key] = $.map(seriesData, function(series) {
-      return {
-        name: series.name,
-        data: $.map(series.data || [], function(point) {
-          return [[point[0], point[1]]];
-        })
-      };
-    });
     var chart = new Highcharts.Chart({
       chart: {
         renderTo: 'svplus-system-chart-' + key,
