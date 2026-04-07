@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.23">
+<!ENTITY version   "2026.04.07.24">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "0966b532163f7f2306954d27a3e7018c">
+<!ENTITY MD5 "71b2c62231f8f3ffb46c34d865b73b88">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.24
+- Fix: Refresh the active Disk Stats or System Stats subtab page itself when the backend reports a newer installed plugin version, so an already-open dashboard can pick up the updated page shell after install without relying on a full browser hard refresh
+- UI: Replace the System Stats chart legend with a spaced HTML legend row so the series labels no longer collide or clip at the bottom of the chart cards
 
 ###2026.04.07.23
 - Fix: Load Disk Stats and System Stats frontend assets with a per-version cache-busting token so a fresh plugin update can pull the new dashboard scripts without a manual browser cache clear

@@ -324,6 +324,37 @@
   height: 232px;
 }
 
+.svplus-system-chart-legend {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  justify-content: center;
+  padding: 8px 16px 0;
+}
+
+.svplus-system-legend-item {
+  align-items: center;
+  color: var(--sv-text-soft);
+  display: inline-flex;
+  font-size: 10px;
+  gap: 6px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.svplus-system-legend-swatch {
+  border-radius: 3px;
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 10px;
+  width: 10px;
+}
+
+.svplus-system-legend-text {
+  display: inline-block;
+}
+
 .svplus-system-chip-group {
   display: flex;
   flex-wrap: wrap;
@@ -502,6 +533,12 @@
 
   .svplus-system-chart {
     height: 212px;
+  }
+
+  .svplus-system-chart-legend {
+    justify-content: flex-start;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .svplus-system-headline {

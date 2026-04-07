@@ -28,15 +28,23 @@
       var win = window;
       var current = String(win.statsViewDiskDashboardConfig && win.statsViewDiskDashboardConfig.assetVersion || '').trim();
       var target = String(nextVersion || '').trim();
-      var hostWindow = null;
+      var refreshKey = '';
       if (!target || !current || target === current) {
         return false;
       }
-      hostWindow = win.top && win.top.location ? win.top : win;
-      var url = new URL(hostWindow.location.href);
+
+      refreshKey = 'statsview.reload:disk-stats:' + target + ':' + String(win.location && win.location.pathname || '');
+      if (win.sessionStorage) {
+        if (win.sessionStorage.getItem(refreshKey) === '1') {
+          return false;
+        }
+        win.sessionStorage.setItem(refreshKey, '1');
+      }
+
+      var url = new URL(win.location.href);
       url.searchParams.set('svplusv', target);
       url.searchParams.set('svplusr', String(Date.now()));
-      hostWindow.location.replace(url.toString());
+      win.location.replace(url.toString());
       return true;
     } catch (_error) {
       return false;

@@ -75,15 +75,23 @@
     try {
       var current = String(window.statsViewSystemDashboardConfig && window.statsViewSystemDashboardConfig.assetVersion || '').trim();
       var target = String(nextVersion || '').trim();
-      var hostWindow = null;
+      var refreshKey = '';
       if (!current || !target || current === target) {
         return false;
       }
-      hostWindow = window.top && window.top.location ? window.top : window;
-      var url = new URL(hostWindow.location.href);
+
+      refreshKey = 'statsview.reload:system-stats:' + target + ':' + String(window.location && window.location.pathname || '');
+      if (window.sessionStorage) {
+        if (window.sessionStorage.getItem(refreshKey) === '1') {
+          return false;
+        }
+        window.sessionStorage.setItem(refreshKey, '1');
+      }
+
+      var url = new URL(window.location.href);
       url.searchParams.set('svplusv', target);
       url.searchParams.set('svplusr', String(Date.now()));
-      hostWindow.location.replace(url.toString());
+      window.location.replace(url.toString());
       return true;
     } catch (_error) {
       return false;
@@ -352,6 +360,7 @@
             '<div id="svplus-system-current-' + escapeHtml(key) + '" class="svplus-system-chip-group"></div>' +
           '</div>' +
           '<div id="svplus-system-chart-' + escapeHtml(key) + '" class="svplus-system-chart"></div>' +
+          '<div id="svplus-system-legend-' + escapeHtml(key) + '" class="svplus-system-chart-legend"></div>' +
         '</section>'
       );
     });
@@ -537,11 +546,29 @@
     return formatIoRate(value);
   };
 
+  Dashboard.prototype.renderChartLegend = function(key, seriesData) {
+    var def = MODULE_DEFS[key];
+    var html = $.map(seriesData || [], function(series, index) {
+      return [
+        '<span class="svplus-system-legend-item">',
+        '<span class="svplus-system-legend-swatch" style="background:',
+        escapeHtml(def.tones[index] || '#4dd3ff'),
+        '"></span>',
+        '<span class="svplus-system-legend-text">',
+        escapeHtml(series.name),
+        '</span>',
+        '</span>'
+      ].join('');
+    }).join('');
+
+    $('#svplus-system-legend-' + key).html(html);
+  };
+
   Dashboard.prototype.createChart = function(key, seriesData) {
     var self = this;
     var def = MODULE_DEFS[key];
     var type = def.stacked ? 'area' : 'line';
-    return new Highcharts.Chart({
+    var chart = new Highcharts.Chart({
       chart: {
         renderTo: 'svplus-system-chart-' + key,
         backgroundColor: 'transparent',
@@ -558,18 +585,7 @@
       },
       credits: { enabled: false },
       title: { text: null },
-      legend: {
-        enabled: true,
-        align: 'center',
-        borderWidth: 0,
-        layout: 'horizontal',
-        margin: 8,
-        padding: 0,
-        verticalAlign: 'bottom',
-        y: 4,
-        itemStyle: { color: '#b8c6da', fontSize: '10px' },
-        itemHoverStyle: { color: '#e7eef8' }
-      },
+      legend: { enabled: false },
       xAxis: {
         type: 'datetime',
         lineColor: 'rgba(148, 163, 184, 0.25)',
@@ -626,6 +642,8 @@
         };
       })
     });
+    this.renderChartLegend(key, seriesData);
+    return chart;
   };
 
   Dashboard.prototype.renderSnapshot = function(payload) {
