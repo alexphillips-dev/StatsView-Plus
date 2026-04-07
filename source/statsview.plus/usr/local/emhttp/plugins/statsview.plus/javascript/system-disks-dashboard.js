@@ -161,25 +161,19 @@
     this.$topUtilization = $('#svplus-top-utilization');
     this.$thresholds = $('#svplus-thresholds');
     this.$lastRefresh = $('#svplus-last-refresh');
-    this.$refreshButton = $('#svplus-refresh-button');
     this.pollTimer = null;
     this.pending = null;
   }
 
   DiskDashboard.prototype.init = function() {
-    var self = this;
     if (!this.$root.length) {
       return;
     }
-    this.$refreshButton.on('click', function() {
-      self.fetch(true);
-    });
     this.fetch(false);
   };
 
   DiskDashboard.prototype.setBusy = function(isBusy) {
     this.$root.toggleClass('is-loading', !!isBusy);
-    this.$refreshButton.prop('disabled', !!isBusy);
     if (isBusy && !this.$root.hasClass('is-ready')) {
       this.$lastRefresh.text(this.config.labels.refreshing);
     }

@@ -1,6 +1,52 @@
 (function(window, document) {
   'use strict';
 
+  function stylesheetHref() {
+    var script = document.currentScript;
+    var scripts;
+    var index;
+
+    if (!script) {
+      scripts = document.getElementsByTagName('script');
+      for (index = scripts.length - 1; index >= 0; index -= 1) {
+        if ((scripts[index].src || '').indexOf('stats-tabs-theme.js') !== -1) {
+          script = scripts[index];
+          break;
+        }
+      }
+    }
+
+    if (!script || !script.src) {
+      return '';
+    }
+
+    return script.src.replace('/javascript/stats-tabs-theme.js', '/sheets/StatsTabs.css');
+  }
+
+  function ensureStylesheet(doc, href) {
+    var head;
+    var linkId = 'svplus-stats-tabs-theme-link';
+    var link;
+
+    if (!doc || !href) {
+      return;
+    }
+
+    head = doc.head || doc.getElementsByTagName('head')[0];
+    if (!head) {
+      return;
+    }
+
+    link = doc.getElementById(linkId);
+    if (!link) {
+      link = doc.createElement('link');
+      link.id = linkId;
+      link.rel = 'stylesheet';
+      head.appendChild(link);
+    }
+    link.href = href;
+  }
+
   function tabLabelSet(nav) {
     var labels = {};
     var links = nav.querySelectorAll('a');
@@ -40,9 +86,13 @@
   }
 
   function run() {
+    var href = stylesheetHref();
+
+    ensureStylesheet(document, href);
     applyTheme(document);
     try {
       if (window.top && window.top.document && window.top.document !== document) {
+        ensureStylesheet(window.top.document, href);
         applyTheme(window.top.document);
       }
     } catch (_statsTabsThemeTopError) {}

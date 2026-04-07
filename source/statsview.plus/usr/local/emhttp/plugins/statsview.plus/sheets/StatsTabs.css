@@ -1,27 +1,27 @@
 .svplus-stats-tabframe.ui-tabs.ui-widget.ui-widget-content {
-  background: transparent;
-  border: none;
-  padding: 0;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header {
   align-items: center;
-  background: transparent;
-  border: none;
-  display: flex;
+  background: transparent !important;
+  border: none !important;
+  display: flex !important;
   gap: 8px;
   margin: 0 0 12px;
-  padding: 0;
+  padding: 0 !important;
 }
 
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li {
-  background: rgba(13, 24, 42, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 12px 12px 0 0;
-  box-shadow: none;
-  margin: 0;
+  background: rgba(13, 24, 42, 0.9) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+  border-radius: 12px 12px 0 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
   min-height: 0;
-  padding: 0;
+  padding: 0 !important;
   position: relative;
 }
 
@@ -42,8 +42,8 @@
 
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li a {
   align-items: center;
-  color: #b8c6da;
-  display: inline-flex;
+  color: #b8c6da !important;
+  display: inline-flex !important;
   font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -51,18 +51,18 @@
   letter-spacing: 0.06em;
   line-height: 1;
   padding: 11px 14px 10px;
-  text-decoration: none;
+  text-decoration: none !important;
   text-transform: uppercase;
 }
 
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li a:hover {
-  color: #e7eef8;
+  color: #e7eef8 !important;
 }
 
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li.ui-state-active,
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li.ui-tabs-active {
-  background: linear-gradient(180deg, rgba(17, 28, 47, 0.98) 0%, rgba(13, 24, 42, 0.98) 100%);
-  border-color: rgba(77, 211, 255, 0.28);
+  background: linear-gradient(180deg, rgba(17, 28, 47, 0.98) 0%, rgba(13, 24, 42, 0.98) 100%) !important;
+  border-color: rgba(77, 211, 255, 0.28) !important;
 }
 
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li.ui-state-active::after,
@@ -73,13 +73,13 @@
 
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li.ui-state-active a,
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li.ui-tabs-active a {
-  color: #f3f8ff;
+  color: #f3f8ff !important;
 }
 
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li .fa,
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li .icon,
 .svplus-stats-tabbar.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header li i {
-  color: #7ae4ff;
+  color: #7ae4ff !important;
   font-size: 11px;
 }
 

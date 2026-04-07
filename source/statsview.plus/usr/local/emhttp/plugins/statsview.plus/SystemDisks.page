@@ -65,7 +65,6 @@ $dashboard_config = [
   'labels' => [
     'title' => _('Storage Command View'),
     'subtitle' => _('Live capacity, thresholds, and pool health across the array'),
-    'refresh' => _('Refresh'),
     'arrayCapacity' => _('Array Capacity'),
     'used' => _('Used'),
     'free' => _('Free'),
@@ -114,7 +113,6 @@ $dashboard_config = [
         <p class="svplus-subheadline"><?=_('Live capacity, thresholds, and pool health across the array')?></p>
       </div>
       <div class="svplus-head-actions">
-        <button type="button" id="svplus-refresh-button" class="svplus-refresh-button"><?=_('Refresh')?></button>
         <p class="svplus-refresh-meta">
           <span class="svplus-refresh-label"><?=_('Last refresh')?></span>
           <span id="svplus-last-refresh" class="svplus-refresh-value"><?=_('Refreshing telemetry...')?></span>
