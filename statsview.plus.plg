@@ -2,17 +2,22 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.31">
+<!ENTITY version   "2026.04.07.33">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "3c19666fe5147ce52fd3a9515b8c2c6d">
+<!ENTITY MD5 "0f63b32427d2b022cc328e92108068d7">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.33
+- UI: Add new commander-style System Stats graphs for load average, CPU state mix, swap usage, and network errors alongside the existing CPU, memory, network, and storage charts
+- Backend: Extend the System Stats data pipeline with live kernel/sysfs snapshots and `sadf -p` history endpoints for the new load, swap, CPU-state, and network-error modules
+- Settings: Expand the System Stats module selector so the new graphs can be shown and managed from the existing settings page
 
 ###2026.04.07.31
 - Maintenance: Remove the inactive Stats subtab theming experiment and delete its unused stylesheet/script so the plugin no longer ships tab-theme code that is not taking effect on live Unraid

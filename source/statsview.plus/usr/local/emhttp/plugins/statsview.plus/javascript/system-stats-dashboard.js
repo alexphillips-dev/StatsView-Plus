@@ -8,9 +8,31 @@
       stacked: true,
       tones: ['#4dd3ff', '#7ae4ff', '#ffb84d'],
       series: [
-        { key: 'user', name: 'User' },
-        { key: 'nice', name: 'Nice' },
-        { key: 'system', name: 'System' }
+        { key: 'user', name: 'User', historyField: 'User' },
+        { key: 'nice', name: 'Nice', historyField: 'Nice' },
+        { key: 'system', name: 'System', historyField: 'System' }
+      ]
+    },
+    load: {
+      key: 'load',
+      historyCmd: 'load',
+      stacked: false,
+      tones: ['#4dd3ff', '#37d39a', '#ffb84d'],
+      series: [
+        { key: 'one', name: '1m', historyField: 'Load 1m' },
+        { key: 'five', name: '5m', historyField: 'Load 5m' },
+        { key: 'fifteen', name: '15m', historyField: 'Load 15m' }
+      ]
+    },
+    cpux: {
+      key: 'cpux',
+      historyCmd: 'cpux',
+      stacked: false,
+      tones: ['#ffb84d', '#ff6b6b', '#4dd3ff'],
+      series: [
+        { key: 'iowait', name: 'I/O Wait', historyField: 'I/O Wait' },
+        { key: 'steal', name: 'Steal', historyField: 'Steal' },
+        { key: 'idle', name: 'Idle', historyField: 'Idle' }
       ]
     },
     ram: {
@@ -19,9 +41,20 @@
       stacked: true,
       tones: ['#4dd3ff', '#37d39a', '#ffb84d'],
       series: [
-        { key: 'freeBytes', name: 'Free' },
-        { key: 'cachedBytes', name: 'Cached' },
-        { key: 'usedBytes', name: 'Used' }
+        { key: 'freeBytes', name: 'Free', historyField: 'Free' },
+        { key: 'cachedBytes', name: 'Cached', historyField: 'Cached' },
+        { key: 'usedBytes', name: 'Used', historyField: 'Used' }
+      ]
+    },
+    swap: {
+      key: 'swap',
+      historyCmd: 'swap',
+      stacked: true,
+      tones: ['#4dd3ff', '#37d39a', '#ffb84d'],
+      series: [
+        { key: 'freeBytes', name: 'Free', historyField: 'Free' },
+        { key: 'cachedBytes', name: 'Cached', historyField: 'Cached' },
+        { key: 'usedBytes', name: 'Used', historyField: 'Used' }
       ]
     },
     com: {
@@ -30,8 +63,20 @@
       stacked: false,
       tones: ['#4dd3ff', '#37d39a'],
       series: [
-        { key: 'receiveRate', name: 'Receive' },
-        { key: 'transmitRate', name: 'Transmit' }
+        { key: 'receiveRate', name: 'Receive', historyField: 'Receive' },
+        { key: 'transmitRate', name: 'Transmit', historyField: 'Transmit' }
+      ]
+    },
+    edev: {
+      key: 'edev',
+      historyCmd: 'edev',
+      stacked: false,
+      tones: ['#4dd3ff', '#ff6b6b', '#37d39a', '#ffb84d'],
+      series: [
+        { key: 'rxErrors', name: 'RX Errors', historyField: 'RX Errors' },
+        { key: 'txErrors', name: 'TX Errors', historyField: 'TX Errors' },
+        { key: 'rxDrops', name: 'RX Drops', historyField: 'RX Drops' },
+        { key: 'txDrops', name: 'TX Drops', historyField: 'TX Drops' }
       ]
     },
     hdd: {
@@ -40,8 +85,8 @@
       stacked: false,
       tones: ['#ffb84d', '#ff6b6b'],
       series: [
-        { key: 'readRate', name: 'Read' },
-        { key: 'writeRate', name: 'Write' }
+        { key: 'readRate', name: 'Read', historyField: 'Read' },
+        { key: 'writeRate', name: 'Write', historyField: 'Write' }
       ]
     }
   };
@@ -127,6 +172,15 @@
     return (numeric >= 100 ? numeric.toFixed(0) : numeric.toFixed(1)) + ' /s';
   }
 
+  function formatCountRate(value) {
+    var numeric = Math.max(0, Number(value) || 0);
+    return (numeric >= 100 ? numeric.toFixed(0) : numeric.toFixed(1)) + ' /s';
+  }
+
+  function formatLoadValue(value) {
+    return (Number(value) || 0).toFixed(2);
+  }
+
   function buildSummaryCard(label, value, meta, tone) {
     return [
       '<article class="svplus-system-summary-card tone-', escapeHtml(tone || 'normal'), '">',
@@ -190,6 +244,8 @@
     this.pendingCharts = {};
     this.peaks = {};
     this.lastSnapshot = null;
+    this.previousCpuStateRaw = null;
+    this.previousErrorCounters = null;
     this.layoutProbeTimer = null;
     this.pollTimer = null;
     this.snapshotRequest = null;
@@ -259,9 +315,15 @@
   };
 
   Dashboard.prototype.refreshAll = function(manual) {
+    this.resetDerivedCaches();
     this.resetPeaks();
     this.loadCharts();
     this.fetchSnapshot(manual);
+  };
+
+  Dashboard.prototype.resetDerivedCaches = function() {
+    this.previousCpuStateRaw = null;
+    this.previousErrorCounters = null;
   };
 
   Dashboard.prototype.startLayoutProbe = function() {
@@ -396,11 +458,23 @@
     if (key === 'cpu') {
       return this.config.labels.currentLoad;
     }
+    if (key === 'load') {
+      return this.config.labels.loadAverage;
+    }
+    if (key === 'cpux') {
+      return this.config.labels.cpuState;
+    }
     if (key === 'ram') {
       return this.config.labels.memoryUsed;
     }
+    if (key === 'swap') {
+      return this.config.labels.swapUsage;
+    }
     if (key === 'com') {
       return this.config.labels.networkRate;
+    }
+    if (key === 'edev') {
+      return this.config.labels.networkErrors;
     }
     return this.config.labels.storageRate;
   };
@@ -608,11 +682,11 @@
   Dashboard.prototype.transformHistory = function(key, payload) {
     var stateUnit = this.state.unit;
     return $.map(MODULE_DEFS[key].series, function(seriesDef) {
-      var source = payload[seriesDef.name] || [];
+      var source = payload[seriesDef.historyField || seriesDef.name] || [];
       var data = $.map(source, function(point) {
         var x = point[0];
         var y = Number(point[1]) || 0;
-        if (key === 'ram') {
+        if (key === 'ram' || key === 'swap') {
           y = y * 1024;
         } else if (key === 'com') {
           y = stateUnit === 'b' ? y * 8192 : y * 1024;
@@ -626,15 +700,120 @@
     });
   };
 
+  Dashboard.prototype.decorateSnapshot = function(snapshot, generatedAt) {
+    if (!snapshot || typeof snapshot !== 'object') {
+      return snapshot;
+    }
+
+    snapshot.cpux = snapshot.cpux || {};
+    snapshot.edev = snapshot.edev || {};
+    snapshot.load = snapshot.load || {};
+    snapshot.swap = snapshot.swap || {};
+
+    snapshot.cpux.current = this.computeCpuState(snapshot.cpux.raw || {}, generatedAt);
+    snapshot.edev.current = this.computeNetworkErrors(snapshot.edev || {}, generatedAt);
+    return snapshot;
+  };
+
+  Dashboard.prototype.computeCpuState = function(raw, generatedAt) {
+    var current = {
+      user: Number(raw.user) || 0,
+      nice: Number(raw.nice) || 0,
+      system: Number(raw.system) || 0,
+      idle: Number(raw.idle) || 0,
+      iowait: Number(raw.iowait) || 0,
+      irq: Number(raw.irq) || 0,
+      softirq: Number(raw.softirq) || 0,
+      steal: Number(raw.steal) || 0
+    };
+    var previous = this.previousCpuStateRaw;
+    var totalDelta;
+    var irqDelta;
+    var idleDelta;
+    var iowaitDelta;
+    var stealDelta;
+    var userDelta;
+    var niceDelta;
+    var systemDelta;
+
+    this.previousCpuStateRaw = {
+      generatedAt: Number(generatedAt) || 0,
+      counters: current
+    };
+
+    if (!previous) {
+      return { iowait: 0, steal: 0, idle: 0 };
+    }
+
+    idleDelta = Math.max(0, current.idle - previous.counters.idle);
+    iowaitDelta = Math.max(0, current.iowait - previous.counters.iowait);
+    irqDelta = Math.max(0, current.irq - previous.counters.irq) + Math.max(0, current.softirq - previous.counters.softirq);
+    stealDelta = Math.max(0, current.steal - previous.counters.steal);
+    userDelta = Math.max(0, current.user - previous.counters.user);
+    niceDelta = Math.max(0, current.nice - previous.counters.nice);
+    systemDelta = Math.max(0, current.system - previous.counters.system);
+    totalDelta = userDelta + niceDelta + systemDelta + idleDelta + iowaitDelta + irqDelta + stealDelta;
+
+    if (totalDelta <= 0) {
+      return { iowait: 0, steal: 0, idle: 0 };
+    }
+
+    return {
+      iowait: (iowaitDelta / totalDelta) * 100,
+      steal: (stealDelta / totalDelta) * 100,
+      idle: (idleDelta / totalDelta) * 100
+    };
+  };
+
+  Dashboard.prototype.computeNetworkErrors = function(raw, generatedAt) {
+    var current = {
+      rxErrors: Number(raw.rxErrorsCounter) || 0,
+      txErrors: Number(raw.txErrorsCounter) || 0,
+      rxDrops: Number(raw.rxDropsCounter) || 0,
+      txDrops: Number(raw.txDropsCounter) || 0
+    };
+    var previous = this.previousErrorCounters;
+    var elapsed;
+
+    this.previousErrorCounters = {
+      generatedAt: Number(generatedAt) || 0,
+      counters: current
+    };
+
+    if (!previous) {
+      return { rxErrors: 0, txErrors: 0, rxDrops: 0, txDrops: 0 };
+    }
+
+    elapsed = Math.max(1, (Number(generatedAt) || 0) - (Number(previous.generatedAt) || 0));
+    return {
+      rxErrors: Math.max(0, current.rxErrors - previous.counters.rxErrors) / elapsed,
+      txErrors: Math.max(0, current.txErrors - previous.counters.txErrors) / elapsed,
+      rxDrops: Math.max(0, current.rxDrops - previous.counters.rxDrops) / elapsed,
+      txDrops: Math.max(0, current.txDrops - previous.counters.txDrops) / elapsed
+    };
+  };
+
   Dashboard.prototype.seriesValueFromSnapshot = function(key, snapshot) {
     if (key === 'cpu') {
       return [snapshot.cpu.user, snapshot.cpu.nice, snapshot.cpu.system];
     }
+    if (key === 'load') {
+      return [snapshot.load.one, snapshot.load.five, snapshot.load.fifteen];
+    }
+    if (key === 'cpux') {
+      return [snapshot.cpux.current.iowait, snapshot.cpux.current.steal, snapshot.cpux.current.idle];
+    }
     if (key === 'ram') {
       return [snapshot.ram.freeBytes, snapshot.ram.cachedBytes, snapshot.ram.usedBytes];
     }
+    if (key === 'swap') {
+      return [snapshot.swap.freeBytes, snapshot.swap.cachedBytes, snapshot.swap.usedBytes];
+    }
     if (key === 'com') {
       return [snapshot.com.receiveRate, snapshot.com.transmitRate];
+    }
+    if (key === 'edev') {
+      return [snapshot.edev.current.rxErrors, snapshot.edev.current.txErrors, snapshot.edev.current.rxDrops, snapshot.edev.current.txDrops];
     }
     return [snapshot.hdd.readRate, snapshot.hdd.writeRate];
   };
@@ -658,14 +837,20 @@
   };
 
   Dashboard.prototype.chartValueFormatter = function(key, value) {
-    if (key === 'cpu') {
+    if (key === 'cpu' || key === 'cpux') {
       return (Number(value) || 0).toFixed(1) + '%';
     }
-    if (key === 'ram') {
+    if (key === 'ram' || key === 'swap') {
       return formatBytes(value);
+    }
+    if (key === 'load') {
+      return formatLoadValue(value);
     }
     if (key === 'com') {
       return formatRate(value, this.state.unit);
+    }
+    if (key === 'edev') {
+      return formatCountRate(value);
     }
     return formatIoRate(value);
   };
@@ -721,7 +906,7 @@
       },
       yAxis: {
         min: 0,
-        max: key === 'cpu' && this.config.cpuScale === 100 ? 100 : null,
+        max: key === 'cpux' ? 100 : (key === 'cpu' && this.config.cpuScale === 100 ? 100 : null),
         gridLineColor: 'rgba(148, 163, 184, 0.12)',
         title: { text: null },
         labels: {
@@ -771,7 +956,7 @@
   };
 
   Dashboard.prototype.renderSnapshot = function(payload) {
-    var snapshot = payload.snapshot || {};
+    var snapshot = this.decorateSnapshot(payload.snapshot || {}, payload.generatedAt || 0);
     if (!snapshot.cpu || !snapshot.ram || !snapshot.com || !snapshot.hdd) {
       return;
     }
@@ -799,44 +984,112 @@
     ].join(''));
   };
 
-  Dashboard.prototype.renderCurrentMetrics = function(snapshot) {
-    $('#svplus-system-current-cpu').html([
-      '<span class="svplus-system-chip tone-normal">' + escapeHtml(this.config.labels.total) + ': ' + escapeHtml(snapshot.cpu.total.toFixed(1) + '%') + '</span>',
-      '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.used) + ': ' + escapeHtml(snapshot.cpu.user.toFixed(1) + '%') + '</span>',
-      '<span class="svplus-system-chip tone-warning">' + escapeHtml('System') + ': ' + escapeHtml(snapshot.cpu.system.toFixed(1) + '%') + '</span>'
-    ].join(''));
-
-    $('#svplus-system-current-ram').html([
-      '<span class="svplus-system-chip tone-critical">' + escapeHtml(this.config.labels.used) + ': ' + escapeHtml(formatBytes(snapshot.ram.usedBytes)) + '</span>',
-      '<span class="svplus-system-chip tone-normal">' + escapeHtml(this.config.labels.cached) + ': ' + escapeHtml(formatBytes(snapshot.ram.cachedBytes)) + '</span>',
-      '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.free) + ': ' + escapeHtml(formatBytes(snapshot.ram.freeBytes)) + '</span>'
-    ].join(''));
-
-    $('#svplus-system-current-com').html([
-      '<span class="svplus-system-chip tone-normal">' + escapeHtml(this.config.labels.receive) + ': ' + escapeHtml(formatRate(snapshot.com.receiveRate, this.state.unit)) + '</span>',
-      '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.transmit) + ': ' + escapeHtml(formatRate(snapshot.com.transmitRate, this.state.unit)) + '</span>'
-    ].join(''));
-
-    $('#svplus-system-current-hdd').html([
+  Dashboard.prototype.currentMetricChips = function(key, snapshot) {
+    if (key === 'cpu') {
+      return [
+        '<span class="svplus-system-chip tone-normal">' + escapeHtml(this.config.labels.total) + ': ' + escapeHtml(snapshot.cpu.total.toFixed(1) + '%') + '</span>',
+        '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.used) + ': ' + escapeHtml(snapshot.cpu.user.toFixed(1) + '%') + '</span>',
+        '<span class="svplus-system-chip tone-warning">' + escapeHtml('System') + ': ' + escapeHtml(snapshot.cpu.system.toFixed(1) + '%') + '</span>'
+      ];
+    }
+    if (key === 'load') {
+      return [
+        '<span class="svplus-system-chip tone-normal">' + escapeHtml(this.config.labels.load1) + ': ' + escapeHtml(formatLoadValue(snapshot.load.one)) + '</span>',
+        '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.load5) + ': ' + escapeHtml(formatLoadValue(snapshot.load.five)) + '</span>',
+        '<span class="svplus-system-chip tone-warning">' + escapeHtml(this.config.labels.load15) + ': ' + escapeHtml(formatLoadValue(snapshot.load.fifteen)) + '</span>'
+      ];
+    }
+    if (key === 'cpux') {
+      return [
+        '<span class="svplus-system-chip tone-warning">' + escapeHtml(this.config.labels.iowait) + ': ' + escapeHtml((snapshot.cpux.current.iowait || 0).toFixed(1) + '%') + '</span>',
+        '<span class="svplus-system-chip tone-critical">' + escapeHtml(this.config.labels.steal) + ': ' + escapeHtml((snapshot.cpux.current.steal || 0).toFixed(1) + '%') + '</span>',
+        '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.idle) + ': ' + escapeHtml((snapshot.cpux.current.idle || 0).toFixed(1) + '%') + '</span>'
+      ];
+    }
+    if (key === 'ram') {
+      return [
+        '<span class="svplus-system-chip tone-critical">' + escapeHtml(this.config.labels.used) + ': ' + escapeHtml(formatBytes(snapshot.ram.usedBytes)) + '</span>',
+        '<span class="svplus-system-chip tone-normal">' + escapeHtml(this.config.labels.cached) + ': ' + escapeHtml(formatBytes(snapshot.ram.cachedBytes)) + '</span>',
+        '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.free) + ': ' + escapeHtml(formatBytes(snapshot.ram.freeBytes)) + '</span>'
+      ];
+    }
+    if (key === 'swap') {
+      return [
+        '<span class="svplus-system-chip tone-critical">' + escapeHtml(this.config.labels.used) + ': ' + escapeHtml(formatBytes(snapshot.swap.usedBytes)) + '</span>',
+        '<span class="svplus-system-chip tone-normal">' + escapeHtml(this.config.labels.cached) + ': ' + escapeHtml(formatBytes(snapshot.swap.cachedBytes)) + '</span>',
+        '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.free) + ': ' + escapeHtml(formatBytes(snapshot.swap.freeBytes)) + '</span>'
+      ];
+    }
+    if (key === 'com') {
+      return [
+        '<span class="svplus-system-chip tone-normal">' + escapeHtml(this.config.labels.receive) + ': ' + escapeHtml(formatRate(snapshot.com.receiveRate, this.state.unit)) + '</span>',
+        '<span class="svplus-system-chip tone-neutral">' + escapeHtml(this.config.labels.transmit) + ': ' + escapeHtml(formatRate(snapshot.com.transmitRate, this.state.unit)) + '</span>'
+      ];
+    }
+    if (key === 'edev') {
+      return [
+        '<span class="svplus-system-chip tone-critical">' + escapeHtml(this.config.labels.rxErrors) + ': ' + escapeHtml(formatCountRate(snapshot.edev.current.rxErrors)) + '</span>',
+        '<span class="svplus-system-chip tone-critical">' + escapeHtml(this.config.labels.txErrors) + ': ' + escapeHtml(formatCountRate(snapshot.edev.current.txErrors)) + '</span>',
+        '<span class="svplus-system-chip tone-warning">' + escapeHtml(this.config.labels.rxDrops) + ': ' + escapeHtml(formatCountRate(snapshot.edev.current.rxDrops)) + '</span>',
+        '<span class="svplus-system-chip tone-warning">' + escapeHtml(this.config.labels.txDrops) + ': ' + escapeHtml(formatCountRate(snapshot.edev.current.txDrops)) + '</span>'
+      ];
+    }
+    return [
       '<span class="svplus-system-chip tone-warning">' + escapeHtml(this.config.labels.read) + ': ' + escapeHtml(formatIoRate(snapshot.hdd.readRate)) + '</span>',
       '<span class="svplus-system-chip tone-critical">' + escapeHtml(this.config.labels.write) + ': ' + escapeHtml(formatIoRate(snapshot.hdd.writeRate)) + '</span>'
-    ].join(''));
+    ];
+  };
+
+  Dashboard.prototype.renderCurrentMetrics = function(snapshot) {
+    var self = this;
+    $.each(this.modules, function(_, key) {
+      $('#svplus-system-current-' + key).html(self.currentMetricChips(key, snapshot).join(''));
+    });
   };
 
   Dashboard.prototype.renderSignalBoard = function(snapshot) {
     var items = [];
-    items.push(buildStackItem(this.config.labels.cpu, snapshot.cpu.total.toFixed(1) + '%', this.config.labels.currentLoad, snapshot.cpu.total >= 85 ? 'critical' : snapshot.cpu.total >= 60 ? 'warning' : 'normal'));
-    items.push(buildStackItem(this.config.labels.ram, formatBytes(snapshot.ram.usedBytes), clampPercent(snapshot.ram.usedPercent).toFixed(1) + '% ' + this.config.labels.used.toLowerCase(), snapshot.ram.usedPercent >= 85 ? 'critical' : snapshot.ram.usedPercent >= 65 ? 'warning' : 'normal'));
-    items.push(buildStackItem(this.config.labels.com, formatRate(snapshot.com.totalRate, this.state.unit), this.state.port, 'normal'));
-    items.push(buildStackItem(this.config.labels.hdd, formatIoRate(snapshot.hdd.totalRate), this.config.labels.updated, 'neutral'));
+    var self = this;
+    $.each(this.modules, function(_, key) {
+      items.push(self.buildSignalBoardItem(key, snapshot));
+    });
     this.$signalBoard.html(items.join(''));
+  };
+
+  Dashboard.prototype.buildSignalBoardItem = function(key, snapshot) {
+    if (key === 'cpu') {
+      return buildStackItem(this.config.labels.cpu, snapshot.cpu.total.toFixed(1) + '%', this.config.labels.currentLoad, snapshot.cpu.total >= 85 ? 'critical' : snapshot.cpu.total >= 60 ? 'warning' : 'normal');
+    }
+    if (key === 'load') {
+      return buildStackItem(this.config.labels.load, formatLoadValue(snapshot.load.one), '1m average', snapshot.load.one >= 8 ? 'critical' : snapshot.load.one >= 4 ? 'warning' : 'normal');
+    }
+    if (key === 'cpux') {
+      return buildStackItem(this.config.labels.cpux, (snapshot.cpux.current.iowait || 0).toFixed(1) + '%', this.config.labels.iowait, snapshot.cpux.current.iowait >= 20 ? 'critical' : snapshot.cpux.current.iowait >= 10 ? 'warning' : 'normal');
+    }
+    if (key === 'ram') {
+      return buildStackItem(this.config.labels.ram, formatBytes(snapshot.ram.usedBytes), clampPercent(snapshot.ram.usedPercent).toFixed(1) + '% ' + this.config.labels.used.toLowerCase(), snapshot.ram.usedPercent >= 85 ? 'critical' : snapshot.ram.usedPercent >= 65 ? 'warning' : 'normal');
+    }
+    if (key === 'swap') {
+      return buildStackItem(this.config.labels.swap, formatBytes(snapshot.swap.usedBytes), clampPercent(snapshot.swap.usedPercent).toFixed(1) + '% ' + this.config.labels.used.toLowerCase(), snapshot.swap.usedPercent >= 60 ? 'critical' : snapshot.swap.usedPercent >= 30 ? 'warning' : 'normal');
+    }
+    if (key === 'com') {
+      return buildStackItem(this.config.labels.com, formatRate(snapshot.com.totalRate, this.state.unit), this.state.port, 'normal');
+    }
+    if (key === 'edev') {
+      return buildStackItem(this.config.labels.edev, formatCountRate((snapshot.edev.current.rxErrors || 0) + (snapshot.edev.current.txErrors || 0)), this.state.port, ((snapshot.edev.current.rxErrors || 0) + (snapshot.edev.current.txErrors || 0)) > 0 ? 'critical' : 'normal');
+    }
+    return buildStackItem(this.config.labels.hdd, formatIoRate(snapshot.hdd.totalRate), this.config.labels.updated, 'neutral');
   };
 
   Dashboard.prototype.updatePeaks = function(snapshot) {
     var current = {
       cpu: snapshot.cpu.total,
+      load: snapshot.load.one,
+      cpux: snapshot.cpux.current.iowait,
       ram: snapshot.ram.usedBytes,
+      swap: snapshot.swap.usedBytes,
       com: snapshot.com.totalRate,
+      edev: (snapshot.edev.current.rxErrors || 0) + (snapshot.edev.current.txErrors || 0) + (snapshot.edev.current.rxDrops || 0) + (snapshot.edev.current.txDrops || 0),
       hdd: snapshot.hdd.totalRate
     };
     var self = this;
@@ -849,11 +1102,36 @@
 
   Dashboard.prototype.renderPeaks = function() {
     var items = [];
-    items.push(buildStackItem(this.config.labels.cpu, (Number(this.peaks.cpu || 0)).toFixed(1) + '%', this.config.labels.currentLoad, 'warning'));
-    items.push(buildStackItem(this.config.labels.ram, formatBytes(this.peaks.ram || 0), this.config.labels.memoryUsed, 'critical'));
-    items.push(buildStackItem(this.config.labels.com, formatRate(this.peaks.com || 0, this.state.unit), this.config.labels.networkRate, 'normal'));
-    items.push(buildStackItem(this.config.labels.hdd, formatIoRate(this.peaks.hdd || 0), this.config.labels.storageRate, 'neutral'));
+    var self = this;
+    $.each(this.modules, function(_, key) {
+      items.push(self.buildPeakItem(key));
+    });
     this.$peaks.html(items.join(''));
+  };
+
+  Dashboard.prototype.buildPeakItem = function(key) {
+    if (key === 'cpu') {
+      return buildStackItem(this.config.labels.cpu, (Number(this.peaks.cpu || 0)).toFixed(1) + '%', this.config.labels.currentLoad, 'warning');
+    }
+    if (key === 'load') {
+      return buildStackItem(this.config.labels.load, formatLoadValue(this.peaks.load || 0), '1m average', 'warning');
+    }
+    if (key === 'cpux') {
+      return buildStackItem(this.config.labels.cpux, (Number(this.peaks.cpux || 0)).toFixed(1) + '%', this.config.labels.iowait, 'warning');
+    }
+    if (key === 'ram') {
+      return buildStackItem(this.config.labels.ram, formatBytes(this.peaks.ram || 0), this.config.labels.memoryUsed, 'critical');
+    }
+    if (key === 'swap') {
+      return buildStackItem(this.config.labels.swap, formatBytes(this.peaks.swap || 0), this.config.labels.swapUsage, 'critical');
+    }
+    if (key === 'com') {
+      return buildStackItem(this.config.labels.com, formatRate(this.peaks.com || 0, this.state.unit), this.config.labels.networkRate, 'normal');
+    }
+    if (key === 'edev') {
+      return buildStackItem(this.config.labels.edev, formatCountRate(this.peaks.edev || 0), this.config.labels.networkErrors, 'warning');
+    }
+    return buildStackItem(this.config.labels.hdd, formatIoRate(this.peaks.hdd || 0), this.config.labels.storageRate, 'neutral');
   };
 
   Dashboard.prototype.renderContext = function(payload) {

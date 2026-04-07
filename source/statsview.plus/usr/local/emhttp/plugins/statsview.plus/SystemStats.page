@@ -23,10 +23,21 @@ endif;
 $plugin = 'statsview.plus';
 $cfg = parse_plugin_cfg($plugin);
 $show = trim((string)($cfg['show'] ?? 'cpu,ram,com,hdd'));
-$modules = array_values(array_filter(array_map('trim', explode(',', $show))));
-if (empty($modules)) {
-  $modules = ['cpu', 'ram', 'com', 'hdd'];
+if (!function_exists('statsview_plus_system_page_modules')) {
+  function statsview_plus_system_page_modules($show_csv) {
+    $allowed = ['cpu', 'load', 'cpux', 'ram', 'swap', 'com', 'edev', 'hdd'];
+    $legacy = ['cpu', 'ram', 'com', 'hdd'];
+    $modules = array_values(array_filter(array_map('trim', explode(',', (string)$show_csv))));
+    if (empty($modules) || $modules === $legacy) {
+      return $allowed;
+    }
+    $selected = array_values(array_intersect($allowed, array_unique($modules)));
+    return array_values(array_filter($allowed, function($module) use ($selected) {
+      return in_array($module, $selected, true);
+    }));
+  }
 }
+$modules = statsview_plus_system_page_modules($show);
 
 $graph = (string)($cfg['graph'] ?? '0');
 $frame = (string)($cfg['frame'] ?? '150');
@@ -115,7 +126,7 @@ $dashboard_config = [
   'frameOptions' => $frame_options,
   'labels' => [
     'title' => _('System Command View'),
-    'subtitle' => _('Live telemetry, rolling charts, and historical trends across CPU, memory, network, and storage'),
+    'subtitle' => _('Live telemetry, rolling charts, and historical trends across CPU, load, memory, swap, network, and storage'),
     'reset' => _('Reset'),
     'timeframe' => _('Timeframe'),
     'window' => _('Window'),
@@ -125,12 +136,20 @@ $dashboard_config = [
     'refreshing' => _('Refreshing telemetry...'),
     'refreshFailed' => _('Unable to refresh system telemetry right now.'),
     'cpu' => _('Processor'),
+    'load' => _('Load'),
+    'cpux' => _('CPU States'),
     'ram' => _('Memory'),
+    'swap' => _('Swap'),
     'com' => _('Network'),
+    'edev' => _('Network Errors'),
     'hdd' => _('Storage'),
     'currentLoad' => _('Current load'),
+    'loadAverage' => _('Load average'),
+    'cpuState' => _('CPU state mix'),
     'memoryUsed' => _('Memory used'),
+    'swapUsage' => _('Swap usage'),
     'networkRate' => _('Network rate'),
+    'networkErrors' => _('Network errors'),
     'storageRate' => _('Storage rate'),
     'livePanels' => _('Telemetry Grid'),
     'livePanelsSubtitle' => _('Command-center charts for the enabled system modules'),
@@ -149,6 +168,16 @@ $dashboard_config = [
     'cached' => _('Cached'),
     'receive' => _('Receive'),
     'transmit' => _('Transmit'),
+    'load1' => _('1m'),
+    'load5' => _('5m'),
+    'load15' => _('15m'),
+    'iowait' => _('I/O wait'),
+    'steal' => _('Steal'),
+    'idle' => _('Idle'),
+    'rxErrors' => _('RX errors'),
+    'txErrors' => _('TX errors'),
+    'rxDrops' => _('RX drops'),
+    'txDrops' => _('TX drops'),
     'read' => _('Read'),
     'write' => _('Write'),
     'total' => _('Total'),
@@ -177,7 +206,7 @@ $dashboard_config = [
       <div class="svplus-system-head-copy">
         <p class="svplus-system-eyebrow"><?=_('System Command View')?></p>
         <h2 class="svplus-system-headline"><?=_('System Stats')?></h2>
-        <p class="svplus-system-subheadline"><?=_('Live telemetry, rolling charts, and historical trends across CPU, memory, network, and storage')?></p>
+        <p class="svplus-system-subheadline"><?=_('Live telemetry, rolling charts, and historical trends across CPU, load, memory, swap, network, and storage')?></p>
       </div>
       <div class="svplus-system-head-status">
         <p class="svplus-system-refresh-meta">

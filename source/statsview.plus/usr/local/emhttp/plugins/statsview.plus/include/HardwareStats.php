@@ -69,17 +69,160 @@ function statsview_plus_read_installed_version() {
   return $cached_version;
 }
 
+function statsview_plus_system_module_order() {
+  return ['cpu', 'load', 'cpux', 'ram', 'swap', 'com', 'edev', 'hdd'];
+}
+
 function statsview_plus_system_enabled_modules($show_csv) {
+  $allowed = statsview_plus_system_module_order();
+  $legacy = ['cpu', 'ram', 'com', 'hdd'];
   $modules = array_values(array_filter(array_map('trim', explode(',', (string)$show_csv))));
-  if (empty($modules)) {
-    $modules = ['cpu', 'ram', 'com', 'hdd'];
+  if (empty($modules) || $modules === $legacy) {
+    return $allowed;
   }
-  return array_values(array_intersect(['cpu', 'ram', 'com', 'hdd'], array_unique($modules)));
+
+  $selected = array_values(array_intersect($allowed, array_unique($modules)));
+  return array_values(array_filter($allowed, function($module) use ($selected) {
+    return in_array($module, $selected, true);
+  }));
 }
 
 function statsview_plus_convert_network_rate($value, $unit) {
   $bytes_per_second = max(0, (float)$value) * 1024;
   return $unit=='b' ? $bytes_per_second * 8 : $bytes_per_second;
+}
+
+function statsview_plus_read_meminfo_snapshot() {
+  $values = [];
+  $raw = @file('/proc/meminfo', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+  foreach ((array)$raw as $line) {
+    if (preg_match('/^([A-Za-z_()]+):\s+([0-9]+)/', $line, $matches)) {
+      $values[$matches[1]] = (float)$matches[2] * 1024;
+    }
+  }
+  return $values;
+}
+
+function statsview_plus_read_load_average_snapshot() {
+  $parts = preg_split('/\s+/', trim((string)@file_get_contents('/proc/loadavg')));
+  return [
+    'one' => round((float)($parts[0] ?? 0), 2),
+    'five' => round((float)($parts[1] ?? 0), 2),
+    'fifteen' => round((float)($parts[2] ?? 0), 2)
+  ];
+}
+
+function statsview_plus_read_cpu_counter_snapshot() {
+  $handle = @fopen('/proc/stat', 'r');
+  $line = '';
+  if ($handle) {
+    while (($row = fgets($handle)) !== false) {
+      if (strpos($row, 'cpu ') === 0) {
+        $line = $row;
+        break;
+      }
+    }
+    fclose($handle);
+  }
+  $parts = preg_split('/\s+/', trim($line));
+  return [
+    'user' => (float)($parts[1] ?? 0),
+    'nice' => (float)($parts[2] ?? 0),
+    'system' => (float)($parts[3] ?? 0),
+    'idle' => (float)($parts[4] ?? 0),
+    'iowait' => (float)($parts[5] ?? 0),
+    'irq' => (float)($parts[6] ?? 0),
+    'softirq' => (float)($parts[7] ?? 0),
+    'steal' => (float)($parts[8] ?? 0)
+  ];
+}
+
+function statsview_plus_read_network_error_counters($port) {
+  $safe_port = preg_replace('/[^A-Za-z0-9._:-]/', '', (string)$port);
+  $base = "/sys/class/net/$safe_port/statistics";
+  return [
+    'rxErrorsCounter' => max(0, (float)trim((string)@file_get_contents("$base/rx_errors"))),
+    'txErrorsCounter' => max(0, (float)trim((string)@file_get_contents("$base/tx_errors"))),
+    'rxDropsCounter' => max(0, (float)trim((string)@file_get_contents("$base/rx_dropped"))),
+    'txDropsCounter' => max(0, (float)trim((string)@file_get_contents("$base/tx_dropped")))
+  ];
+}
+
+function statsview_plus_history_interval($graph, $days) {
+  $select = [1=>60, 2=>120, 3=>300, 7=>600, 14=>1200, 21=>1800, 31=>3600, 3653=>7200];
+  $graph = (int)$graph;
+  $days = max(0, (int)$days);
+  $interval = $select[$graph] ?? 60;
+  if ($days <= 28) {
+    foreach ($select as $index => $period) {
+      if ($index > $days) {
+        break;
+      }
+      $interval = $period;
+      if ($index == $graph) {
+        break;
+      }
+    }
+  }
+  return $interval;
+}
+
+function statsview_plus_system_history_payload_from_sadf($graph, $sar_args, $series_map, $device_filter='') {
+  $graph = (int)$graph;
+  $output = [];
+  foreach ($series_map as $label => $_field_name) {
+    $output[$label] = [];
+  }
+
+  if ($graph <= 0) {
+    return $output;
+  }
+
+  $logs = glob('/var/sa/sa*', GLOB_NOSORT);
+  $days = count($logs);
+  if ($days <= 0) {
+    return $output;
+  }
+
+  $interval = statsview_plus_history_interval($graph, $days);
+  $threshold = (floor(time() / 86400) - $graph) * 86400;
+  usort($logs, function($left, $right) {
+    return filemtime($left) - filemtime($right);
+  });
+
+  foreach ($logs as $log) {
+    if ($days <= $graph) {
+      $lines = [];
+      exec("sadf -p -U $interval " . escapeshellarg($log) . " -- $sar_args", $lines);
+      foreach ($lines as $line) {
+        $parts = explode("\t", trim((string)$line));
+        if (count($parts) < 6) {
+          continue;
+        }
+
+        $timestamp = (int)($parts[2] ?? 0);
+        $device = trim((string)($parts[3] ?? ''));
+        $field = trim((string)($parts[4] ?? ''));
+        $value = trim((string)($parts[5] ?? ''));
+
+        if ($timestamp < $threshold || !is_numeric($value)) {
+          continue;
+        }
+        if ($device_filter !== '' && $device !== $device_filter) {
+          continue;
+        }
+
+        foreach ($series_map as $label => $field_name) {
+          if ($field === $field_name) {
+            $output[$label][] = [$timestamp * 1000, round((float)$value, 2)];
+          }
+        }
+      }
+    }
+    $days--;
+  }
+
+  return $output;
 }
 
 function statsview_plus_system_snapshot($port, $unit) {
@@ -116,6 +259,12 @@ function statsview_plus_system_snapshot($port, $unit) {
   $network_transmit = statsview_plus_convert_network_rate($network_values[1] ?? 0, $unit);
   $storage_read = max(0, (float)($storage_values[0] ?? 0));
   $storage_write = max(0, (float)($storage_values[1] ?? 0));
+  $meminfo = statsview_plus_read_meminfo_snapshot();
+  $swap_total = max(0, (float)($meminfo['SwapTotal'] ?? 0));
+  $swap_free = max(0, (float)($meminfo['SwapFree'] ?? 0));
+  $swap_cached = max(0, (float)($meminfo['SwapCached'] ?? 0));
+  $swap_used = max(0, $swap_total - $swap_free);
+  $swap_percent = $swap_total > 0 ? round(100 * $swap_used / $swap_total, 1) : 0;
 
   return [
     'cpu' => [
@@ -142,7 +291,19 @@ function statsview_plus_system_snapshot($port, $unit) {
       'writeRate' => round($storage_write, 2),
       'totalRate' => round($storage_read + $storage_write, 2),
       'unit' => '/s'
-    ]
+    ],
+    'load' => statsview_plus_read_load_average_snapshot(),
+    'swap' => [
+      'freeBytes' => $swap_free,
+      'cachedBytes' => $swap_cached,
+      'usedBytes' => $swap_used,
+      'totalBytes' => $swap_total,
+      'usedPercent' => $swap_percent
+    ],
+    'cpux' => [
+      'raw' => statsview_plus_read_cpu_counter_snapshot()
+    ],
+    'edev' => statsview_plus_read_network_error_counters($port)
   ];
 }
 
@@ -428,6 +589,52 @@ case 'rts':
   $com = '$2=="'.($_POST['port']??'').'"';
   exec("sar 1 1 -u -b -r -n DEV|grep -a '^A'|tr -d '\\0'|awk '$cpu {u=$3;n=$4;s=$5;}; $hdd {getline;r=$6;w=$7;}; $ram {getline;f=$2;c=$6+$7;d=$4;}; $com {x=$5;y=$6;} END{print u,n,s{$nl}r,w{$nl}f,c,d{$nl}x,y}'",$data);
   echo implode(' ', $data);
+  exit;
+case 'load':
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode(
+    statsview_plus_system_history_payload_from_sadf(
+      $_POST['graph'] ?? 0,
+      '-q LOAD',
+      ['Load 1m' => 'ldavg-1', 'Load 5m' => 'ldavg-5', 'Load 15m' => 'ldavg-15']
+    ),
+    JSON_UNESCAPED_SLASHES
+  );
+  exit;
+case 'cpux':
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode(
+    statsview_plus_system_history_payload_from_sadf(
+      $_POST['graph'] ?? 0,
+      '-u ALL',
+      ['I/O Wait' => '%iowait', 'Steal' => '%steal', 'Idle' => '%idle'],
+      'all'
+    ),
+    JSON_UNESCAPED_SLASHES
+  );
+  exit;
+case 'swap':
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode(
+    statsview_plus_system_history_payload_from_sadf(
+      $_POST['graph'] ?? 0,
+      '-S',
+      ['Free' => 'kbswpfree', 'Cached' => 'kbswpcad', 'Used' => 'kbswpused']
+    ),
+    JSON_UNESCAPED_SLASHES
+  );
+  exit;
+case 'edev':
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode(
+    statsview_plus_system_history_payload_from_sadf(
+      $_POST['graph'] ?? 0,
+      '-n EDEV',
+      ['RX Errors' => 'rxerr/s', 'TX Errors' => 'txerr/s', 'RX Drops' => 'rxdrop/s', 'TX Drops' => 'txdrop/s'],
+      preg_replace('/[^A-Za-z0-9._:-]/', '', (string)($_POST['port'] ?? ''))
+    ),
+    JSON_UNESCAPED_SLASHES
+  );
   exit;
 case 'cpu':
   $series = ['User','Nice','System'];

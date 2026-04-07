@@ -18,6 +18,22 @@ $plugin = 'statsview.plus';
 $cfg = parse_plugin_cfg($plugin);
 extract(parse_ini_file('/etc/unraid-version'));
 
+if (!function_exists('statsview_plus_settings_show_value')) {
+  function statsview_plus_settings_show_value($show_csv) {
+    $allowed = ['cpu', 'load', 'cpux', 'ram', 'swap', 'com', 'edev', 'hdd'];
+    $legacy = ['cpu', 'ram', 'com', 'hdd'];
+    $modules = array_values(array_filter(array_map('trim', explode(',', (string)$show_csv))));
+    if (empty($modules) || $modules === $legacy) {
+      return implode(',', $allowed);
+    }
+    $selected = array_values(array_intersect($allowed, array_unique($modules)));
+    return implode(',', array_values(array_filter($allowed, function($module) use ($selected) {
+      return in_array($module, $selected, true);
+    })));
+  }
+}
+$effective_show = statsview_plus_settings_show_value($cfg['show'] ?? '');
+
 unset($sPorts);
 exec("ifconfig -s|awk '/^(bond|eth)/{print $1}'",$sPorts);
 ?>
@@ -69,10 +85,14 @@ _(Position of disk utilization percentage)_:
 _(Viewable system graphs)_:
 : <select id="s1" name="show" multiple style="display:none">
   <option value=''>(_(All)_)</option>
-  <?=mk_option_check($cfg['show'], "cpu", _("Processor"))?>
-  <?=mk_option_check($cfg['show'], "ram", _("Memory"))?>
-  <?=mk_option_check($cfg['show'], "com", _("Network"))?>
-  <?=mk_option_check($cfg['show'], "hdd", _("Storage"))?>
+  <?=mk_option_check($effective_show, "cpu", _("Processor"))?>
+  <?=mk_option_check($effective_show, "load", _("Load"))?>
+  <?=mk_option_check($effective_show, "cpux", _("CPU States"))?>
+  <?=mk_option_check($effective_show, "ram", _("Memory"))?>
+  <?=mk_option_check($effective_show, "swap", _("Swap"))?>
+  <?=mk_option_check($effective_show, "com", _("Network"))?>
+  <?=mk_option_check($effective_show, "edev", _("Network Errors"))?>
+  <?=mk_option_check($effective_show, "hdd", _("Storage"))?>
   </select>
 
 :stats_graphs_plug:
