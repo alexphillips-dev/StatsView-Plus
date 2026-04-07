@@ -180,8 +180,7 @@ $dashboard_config = [
         <h2 class="svplus-system-headline"><?=_('System Stats')?></h2>
         <p class="svplus-system-subheadline"><?=_('Live telemetry, rolling charts, and historical trends across CPU, memory, network, and storage')?></p>
       </div>
-      <div class="svplus-system-head-actions">
-        <button type="button" id="svplus-system-refresh" class="svplus-system-refresh"><?=_('Refresh')?></button>
+      <div class="svplus-system-head-status">
         <p class="svplus-system-refresh-meta">
           <span class="svplus-system-refresh-label"><?=_('Last refresh')?></span>
           <span id="svplus-system-last-refresh" class="svplus-system-refresh-value"><?=_('Refreshing telemetry...')?></span>
@@ -229,8 +228,7 @@ $dashboard_config = [
         </label>
 
         <div class="svplus-system-control svplus-system-control-button">
-          <span>&nbsp;</span>
-          <button type="button" id="svplus-system-reset" class="svplus-system-secondary"><?=_('Reset')?></button>
+          <button type="button" id="svplus-system-reset" class="svplus-system-action-button"><?=_('Reset View')?></button>
         </div>
       </div>
     </section>

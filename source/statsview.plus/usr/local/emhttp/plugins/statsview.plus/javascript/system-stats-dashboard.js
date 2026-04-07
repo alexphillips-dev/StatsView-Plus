@@ -190,7 +190,6 @@
     this.$peaks = $('#svplus-system-peaks');
     this.$context = $('#svplus-system-context');
     this.$lastRefresh = $('#svplus-system-last-refresh');
-    this.$refreshButton = $('#svplus-system-refresh');
     this.$graph = $('#svplus-system-graph');
     this.$frame = $('#svplus-system-frame');
     this.$port = $('#svplus-system-port');
@@ -222,9 +221,6 @@
 
   Dashboard.prototype.bindControls = function() {
     var self = this;
-    this.$refreshButton.on('click', function() {
-      self.refreshAll(true);
-    });
     this.$graph.on('change', function() {
       self.state.graph = String($(this).val() || '0');
       self.refreshAll(true);
@@ -261,7 +257,6 @@
 
   Dashboard.prototype.setBusy = function(isBusy) {
     this.$root.toggleClass('is-loading', !!isBusy);
-    this.$refreshButton.prop('disabled', !!isBusy);
     if (isBusy && !this.lastSnapshot) {
       this.$lastRefresh.text(this.config.labels.refreshing);
     }
