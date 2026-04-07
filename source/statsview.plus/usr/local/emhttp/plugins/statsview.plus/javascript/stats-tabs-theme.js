@@ -66,6 +66,63 @@
     return !!(labels['disk stats'] && labels['system stats']);
   }
 
+  function normalizedText(node) {
+    return String(node && node.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+
+  function isStatsTabLabel(node) {
+    var text = normalizedText(node);
+    return text === 'disk stats' || text === 'system stats';
+  }
+
+  function closestTabItem(node) {
+    if (!node) {
+      return null;
+    }
+    if (typeof node.closest === 'function') {
+      return node.closest('li, [role="tab"], .tab, .tabs, .ui-state-default');
+    }
+    return node.parentElement || null;
+  }
+
+  function findBarsByText(doc) {
+    var nodes;
+    var items = [];
+    var bars = [];
+    var seen = [];
+    var index = 0;
+    var item = null;
+    var bar = null;
+
+    if (!doc || !doc.querySelectorAll) {
+      return bars;
+    }
+
+    nodes = doc.querySelectorAll('a, button, [role="tab"], span');
+    for (index = 0; index < nodes.length; index += 1) {
+      if (!isStatsTabLabel(nodes[index])) {
+        continue;
+      }
+      item = closestTabItem(nodes[index]) || nodes[index].parentElement;
+      if (item) {
+        items.push(item);
+      }
+    }
+
+    for (index = 0; index < items.length; index += 1) {
+      bar = items[index] && items[index].parentElement;
+      if (!bar || seen.indexOf(bar) !== -1) {
+        continue;
+      }
+      if (isStatsTabBar(bar) || (bar.textContent || '').toLowerCase().indexOf('disk stats') !== -1 && (bar.textContent || '').toLowerCase().indexOf('system stats') !== -1) {
+        seen.push(bar);
+        bars.push(bar);
+      }
+    }
+
+    return bars;
+  }
+
   function activeTabItem(nav) {
     return nav.querySelector('li.ui-state-active, li.ui-tabs-active, li[aria-selected="true"]');
   }
@@ -173,6 +230,7 @@
 
   function applyTheme(doc) {
     var navs;
+    var textBars;
     var index;
 
     if (!doc || !doc.querySelectorAll) {
@@ -191,6 +249,18 @@
       }
       styleTabBar(navs[index]);
       observeTabBar(navs[index]);
+    }
+
+    textBars = findBarsByText(doc);
+    for (index = 0; index < textBars.length; index += 1) {
+      if (textBars[index].classList) {
+        textBars[index].classList.add('svplus-stats-tabbar');
+      }
+      if (textBars[index].parentElement && textBars[index].parentElement.classList) {
+        textBars[index].parentElement.classList.add('svplus-stats-tabframe');
+      }
+      styleTabBar(textBars[index]);
+      observeTabBar(textBars[index]);
     }
   }
 

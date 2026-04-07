@@ -2,17 +2,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "statsview.plus">
 <!ENTITY author "Alexander Phillips">
-<!ENTITY version   "2026.04.07.29">
+<!ENTITY version   "2026.04.07.30">
 <!ENTITY launch "Settings/StatsViewPlusSettings">
 <!ENTITY github "alexphillips-dev/StatsView-Plus">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/&name;.plg">
 <!ENTITY source "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5 "31c460cd910b946f792a2396d3228ae9">
+<!ENTITY MD5 "41e2e94d1af4c4033d687a2d21049df3">
 ]>
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12.0" icon="circle-chart.png" support="https://github.com/&github;/issues">
 
 <CHANGES>
 ##StatsView Plus
+
+###2026.04.07.30
+- UI: Broaden the runtime Stats subtab matcher so the commander tab theme can attach by visible Disk Stats and System Stats labels even when Unraid renders a different tab wrapper structure
+- Maintenance: Keep the direct runtime tab styling path, but stop depending solely on the previous jQuery UI xmenu wrapper classes to find the live Stats tab bar
 
 ###2026.04.07.29
 - UI: Style the Stats xmenu subtab elements directly in the runtime after matching the Disk Stats and System Stats tab labels, so the commander tab theme does not depend on host selector specificity
